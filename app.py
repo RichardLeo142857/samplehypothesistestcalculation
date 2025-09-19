@@ -72,7 +72,7 @@ def main():
     else:
         st.error(f"❌ 预测值落在 rejection region → 预测值不合理")
 
-    # 绘图 PDF
+    # 绘图 PDF 功能1
     st.subheader("📈 预测值 PDF")
     x_min = min(data) - 10
     x_max = max(data) + 10
@@ -134,18 +134,25 @@ def main():
     else:
         st.info(f"✅ 单尾：样本均值落在 acceptance region → 没有足够证据拒绝 H0")
 
-    # 绘图 PDF
+    # 绘图 PDF 功能2（以 μ0 为中心）
     st.subheader("📈 样本均值假设检验 PDF")
-    fig2, ax2 = plt.subplots(figsize=(8,5))
-    ax2.plot(x, y, label=f"t-distribution PDF (df={df})")
+    x_min2 = mu0 - 4*S/np.sqrt(n)
+    x_max2 = mu0 + 4*S/np.sqrt(n)
+    x2 = np.linspace(x_min2, x_max2, 500)
+    y2 = stats.t.pdf((x2 - mu0)/(S/np.sqrt(n)), df) / (S/np.sqrt(n))
 
-    # 拒绝域/接受域（双尾）
-    ax2.fill_between(x, 0, y, where=(x < mean - t_crit_two*S/np.sqrt(n)) | (x > mean + t_crit_two*S/np.sqrt(n)), color="lightcoral", alpha=0.3, label="rejection region")
-    ax2.fill_between(x, 0, y, where=(x >= mean - t_crit_two*S/np.sqrt(n)) & (x <= mean + t_crit_two*S/np.sqrt(n)), color="lightgreen", alpha=0.3, label="acceptance region")
+    fig2, ax2 = plt.subplots(figsize=(8,5))
+    ax2.plot(x2, y2, label=f"t-distribution PDF (df={df})")
+
+    # 拒绝域/接受域（双尾为参考）
+    accept_low2 = mu0 - t_crit_two*S/np.sqrt(n)
+    accept_high2 = mu0 + t_crit_two*S/np.sqrt(n)
+    ax2.fill_between(x2, 0, y2, where=(x2 >= accept_low2) & (x2 <= accept_high2), color="lightgreen", alpha=0.3, label="acceptance region")
+    ax2.fill_between(x2, 0, y2, where=(x2 < accept_low2) | (x2 > accept_high2), color="lightcoral", alpha=0.3, label="rejection region")
 
     # 样本均值红线
-    y_mean = stats.t.pdf((mean - mean)/(S/np.sqrt(n)), df) / (S/np.sqrt(n))
-    ax2.plot([mean, mean], [0, y_mean], color='purple', linestyle='--', label="Sample mean")
+    y_mean2 = stats.t.pdf((mean - mu0)/(S/np.sqrt(n)), df) / (S/np.sqrt(n))
+    ax2.plot([mean, mean], [0, y_mean2], color='purple', linestyle='--', label="Sample mean")
 
     ax2.set_xlabel("t")
     ax2.set_ylabel("Probability Density")
