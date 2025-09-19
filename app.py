@@ -63,21 +63,21 @@ def main():
     t_val = (user_prediction - mean) / (S / np.sqrt(n))
 
     # ---------------------------
-    # 显示结果（中文 + 公式 + 具体计算过程）
+    # 显示结果
     st.subheader("📌 结果")
     st.write(f"样本量 n = {n}")
 
     # 样本均值
     mean_formula = f"\\bar{{X}} = ( {' + '.join([str(x) for x in data])} ) / {n} = {mean:.4f}"
-    st.markdown(f"样本均值 = **{mean:.4f}**  \n公式：$$\\bar{{X}} = \\frac{{1}}{{n}} \\sum_{{i=1}}^{{n}} X_i$$  \n具体计算：$$ {mean_formula} $$")
+    st.markdown(f"样本均值 = **{mean:.4f}**  \n$$\\bar{{X}} = \\frac{{1}}{{n}} \\sum_{{i=1}}^{{n}} X_i$$  \n具体计算：$$ {mean_formula} $$")
 
     # 样本方差
     deviations = [f"({x}-{mean:.2f})^2" for x in data]
     S2_formula = f"S^2 = ( {' + '.join(deviations) } ) / ( {n}-1 ) = {S2:.4f}"
-    st.markdown(f"样本方差 = **{S2:.4f}**  \n公式：$$S^2 = \\frac{{1}}{{n-1}} \\sum_{{i=1}}^{{n}} (X_i - \\bar{{X}})^2$$  \n具体计算：$$ {S2_formula} $$")
+    st.markdown(f"样本方差 = **{S2:.4f}**  \n$$S^2 = \\frac{{1}}{{n-1}} \\sum_{{i=1}}^{{n}} (X_i - \\bar{{X}})^2$$  \n具体计算：$$ {S2_formula} $$")
 
     # 样本标准差
-    st.markdown(f"样本标准差 = **{S:.4f}**  \n公式：$$S = \\sqrt{{S^2}}$$  \n具体计算：$$S = \\sqrt{{{S2:.4f}}} = {S:.4f}$$")
+    st.markdown(f"样本标准差 = **{S:.4f}**  \n$$S = \\sqrt{{S^2}}$$  \n具体计算：$$S = \\sqrt{{{S2:.4f}}} = {S:.4f}$$")
 
     st.write(f"自由度 df = {df}")
     st.write(f"{conf_choice} 总体均值置信区间 = **({ci_low:.4f}, {ci_high:.4f})**")
@@ -92,17 +92,17 @@ def main():
 
     # ---------------------------
     # 绘图：t 分布 + 接受/拒绝域 + 用户预测值
-    st.subheader("📈 t PDF")
+    st.subheader("t PDF")
     fig, ax = plt.subplots(figsize=(8, 5))
     x = np.linspace(-4, 4, 500)
     t_pdf = stats.t.pdf(x, df)
     ax.plot(x, t_pdf, label=f"t-distribution (df={df})")
 
     # 填充接受域
-    ax.fill_between(x, 0, t_pdf, where=(x >= -t_crit) & (x <= t_crit), color="lightgreen", alpha=0.3, label="接受域 (Acceptance Region)")
+    ax.fill_between(x, 0, t_pdf, where=(x >= -t_crit) & (x <= t_crit), color="lightgreen", alpha=0.3, label="Acceptance Region")
 
     # 填充拒绝域（左右两端）
-    ax.fill_between(x, 0, t_pdf, where=(x < -t_crit) | (x > t_crit), color="lightcoral", alpha=0.3, label="拒绝域 (Rejection Region)")
+    ax.fill_between(x, 0, t_pdf, where=(x < -t_crit) | (x > t_crit), color="lightcoral", alpha=0.3, label="(Rejection Region")
 
     # 用户预测值
     ax.plot(t_val, stats.t.pdf(t_val, df), 'ro', label=f"Your prediction")
