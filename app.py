@@ -3,14 +3,12 @@ import numpy as np
 import scipy.stats as stats
 import matplotlib.pyplot as plt
 
-st.set_option('deprecation.showPyplotGlobalUse', False)
-
 st.title("🎂Happy 18th Birthday Mr.Lee")
 
 st.markdown("""
-亲爱的 lzh叔叔【笑】，这个工具可以通过你给的样本预测一些数据【t分布，即便样本数小也可以用】。  
+亲爱的 lzh叔叔【笑】，这个工具可以通过你给的样本预测一些数据【t分布，即便样本数小也可以用】。
 
-你可以输入几次数学成绩，它会通过样本均值和样本方差呈现分数分布 PDF，你可以尝试预测能考多少分，并判断预测值合理性。  
+你可以输入几次数学成绩，它会通过样本均值和样本方差呈现分数分布 PDF，你可以尝试预测能考多少分，并判断预测值合理性。
 
 然后可以选择显著性水平 significance level。
 """)
@@ -92,3 +90,4 @@ ax.grid(True)
 ax.legend()
 plt.tight_layout()
 st.pyplot(fig)
+
