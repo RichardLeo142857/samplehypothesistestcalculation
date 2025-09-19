@@ -99,10 +99,10 @@ def main():
     ax.plot(x, t_pdf, label=f"t-distribution (df={df})")
 
     # 接受域
-    ax.fill_between(x, 0, t_pdf, where=(x >= -t_crit) & (x <= t_crit), color="lightgreen", alpha=0.3, label="(Acceptance Region)")
+    ax.fill_between(x, 0, t_pdf, where=(x >= -t_crit) & (x <= t_crit), color="lightgreen", alpha=0.3, label="Acceptance Region")
 
     # 拒绝域
-    ax.fill_between(x, 0, t_pdf, where=(x < -t_crit) | (x > t_crit), color="lightcoral", alpha=0.3, label="(Rejection Region)")
+    ax.fill_between(x, 0, t_pdf, where=(x < -t_crit) | (x > t_crit), color="lightcoral", alpha=0.3, label="Rejection Region")
 
     # 用户预测值
     y_val = stats.t.pdf(t_val, df)
