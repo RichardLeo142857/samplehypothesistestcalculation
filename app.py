@@ -7,15 +7,12 @@ import matplotlib.pyplot as plt
 # 主函数
 # ================================
 def main():
-    st.title("📊 t 分布统计推断与预测工具")
+    st.title("🎂Happy 18th birthday Mr.Lee")
 
     st.markdown("""
-    本工具可以完成以下功能：
-    1. 输入样本数据，计算 **均值 / 方差**  
-    2. 绘制 **t 分布图**  
-    3. 计算 **总体均值置信区间**  
-    4. 输入预测值，判断是否合理（基于预测区间）  
-    """)
+    亲爱的lzh叔叔（bushi）这个工具可以通过你给的样本预测一些数据（我这里用的是t分布因此即便你样本数比较小也可以用）
+ 比方说你可以试着输入你几次数学成绩，然后它会通过这个样本均值和样本方差来呈现你分数分布的PDF ，你可以尝试预估你能考多少分，然后他就会根据你已有的数据来进行假设检验判断你的预估合不合理（不过对你来说150可能也是合理的叭LOL）
+   然后你可以自己选择合适的显著性水平（significance level），假设你在卖一个产品你着急说明你的产品有效你大可把你的significance level设得低点（bushi） """）
 
     # ---------------------------
     # 用户输入数据
@@ -72,9 +69,9 @@ def main():
     st.write(f"{conf_choice} 预测区间 (新观测值) = **({pred_low:.4f}, {pred_high:.4f})**")
 
     if pred_low <= user_prediction <= pred_high:
-        st.success(f"✅ 用户预测值 {user_prediction} 在预测区间内，合理。")
+        st.success(f"✅ {user_prediction} 在Confidence Interval内，接受H0，预测合理。")
     else:
-        st.error(f"❌ 用户预测值 {user_prediction} 超出预测区间，不合理。")
+        st.error(f"❌ 用户预测值 {user_prediction} 在Critical Region内，不合理。")
 
     # ---------------------------
     # 绘制 t 分布
