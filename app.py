@@ -3,9 +3,6 @@ import numpy as np
 import scipy.stats as stats
 import matplotlib.pyplot as plt
 
-# ================================
-# Main function
-# ================================
 def main():
     st.title("🎂Happy 18th Birthday Mr.Lee")
 
@@ -40,46 +37,40 @@ def main():
     # ---------------------------
     # 用户选择显著性水平
     alpha_map = {"90%": 0.10, "95%": 0.05, "99%": 0.01}
-    conf_choice = st.radio("选择置信水平:", list(alpha_map.keys()), index=1)
+    conf_choice = st.radio("选择显著性水平:", list(alpha_map.keys()), index=1)
     alpha = alpha_map[conf_choice]
 
     # ---------------------------
     # 显示样本统计量及公式
-    st.subheader("📌 样本统计量")
+    st.subheader("样本统计量")
     st.write(f"样本量 n = {n}")
 
-    # 样本均值
     mean_formula = f"\\bar{{X}} = ( {' + '.join([str(x) for x in data])} ) / {n} = {mean:.4f}"
     st.markdown(f"样本均值 = **{mean:.4f}**  \n公式：$$\\bar{{X}} = \\frac{{1}}{{n}} \\sum_{{i=1}}^{{n}} X_i$$  \n具体计算：$$ {mean_formula} $$")
 
-    # 样本方差
     deviations = [f"({x}-{mean:.2f})^2" for x in data]
     S2_formula = f"S^2 = ( {' + '.join(deviations) } ) / ( {n}-1 ) = {S2:.4f}"
     st.markdown(f"样本方差 = **{S2:.4f}**  \n公式：$$S^2 = \\frac{{1}}{{n-1}} \\sum_{{i=1}}^{{n}} (X_i - \\bar{{X}})^2$$  \n具体计算：$$ {S2_formula} $$")
 
-    # 样本标准差
     st.markdown(f"样本标准差 = **{S:.4f}**  \n公式：$$S = \\sqrt{{S^2}}$$  \n具体计算：$$S = \\sqrt{{{S2:.4f}}} = {S:.4f}$$")
 
     # ---------------------------
-    # 功能 1：用户预测值检验
+    # 功能 1：预测值检验
     st.subheader("预测值检验")
 
     user_prediction = st.number_input("请输入你的预测值:", value=95.0)
-
-    # 预测区间
     t_crit = stats.t.ppf(1 - alpha/2, df)
     pred_low = mean - t_crit * S * np.sqrt(1 + 1/n)
     pred_high = mean + t_crit * S * np.sqrt(1 + 1/n)
-
     st.write(f"{conf_choice} 新观测值预测区间 = **({pred_low:.4f}, {pred_high:.4f})**")
 
     if pred_low <= user_prediction <= pred_high:
-        st.success(f"✅ 预测值 {user_prediction} 落在 **Acceptance Region**，接受 H0")
+        st.success(f"✅ 预测值 {user_prediction} 落在 acceptance region，接受 H0")
     else:
-        st.error(f"❌ 预测值 {user_prediction} 落在 **Rejection Region**，拒绝 H0")
+        st.error(f"❌ 预测值 {user_prediction} 落在 rejection region，拒绝 H0")
 
-    # 绘图：预测值检验
-    st.subheader("probability density function")
+    # 绘图
+    st.subheader("PDF")
     x_min = min(data) - 10
     x_max = max(data) + 10
     x = np.linspace(x_min, x_max, 500)
@@ -87,17 +78,12 @@ def main():
 
     fig, ax = plt.subplots(figsize=(8,5))
     ax.plot(x, y, label=f"t-distribution PDF (df={df})")
-
-    # 接受域/拒绝域填充
     accept_low = mean - t_crit*S/np.sqrt(n)
     accept_high = mean + t_crit*S/np.sqrt(n)
-    ax.fill_between(x, 0, y, where=(x >= accept_low) & (x <= accept_high), color="lightgreen", alpha=0.3, label="接受域 (Acceptance Region)")
-    ax.fill_between(x, 0, y, where=(x < accept_low) | (x > accept_high), color="lightcoral", alpha=0.3, label="拒绝域 (Rejection Region)")
-
-    # 用户预测值红点
+    ax.fill_between(x, 0, y, where=(x >= accept_low) & (x <= accept_high), color="lightgreen", alpha=0.3, label="acceptance region")
+    ax.fill_between(x, 0, y, where=(x < accept_low) | (x > accept_high), color="lightcoral", alpha=0.3, label="rejection region")
     y_pred = stats.t.pdf((user_prediction - mean)/(S/np.sqrt(n)), df) / (S/np.sqrt(n))
     ax.plot(user_prediction, y_pred, 'ro', label="Your prediction")
-
     ax.set_xlabel("t")
     ax.set_ylabel("Probability Density")
     ax.set_title("Prediction PDF")
@@ -107,13 +93,20 @@ def main():
 
     # ---------------------------
     # 功能 2：样本均值假设检验
-    st.subheader("样本均值假设检验")
+    st.subheader("样本均值假设检验（单尾/双尾）")
+    mu0 = st.number_input("第一步：你认为总体均值 μ₀ 是多少？", value=0.0)
 
-    mu0 = st.number_input("输入假设总体均值 μ₀:", value=0.0)
+    tail_choice = st.radio("第二步：选择检验类型", ["two-tailed", "left-tailed", "right-tailed"])
 
-    # 计算 t 值和 p 值
     t_stat = (mean - mu0) / (S / np.sqrt(n))
-    p_value = 2 * (1 - stats.t.cdf(abs(t_stat), df))
+
+    # 计算 p 值
+    if tail_choice == "two-tailed":
+        p_value = 2 * (1 - stats.t.cdf(abs(t_stat), df))
+    elif tail_choice == "left-tailed":
+        p_value = stats.t.cdf(t_stat, df)
+    else:  # right-tailed
+        p_value = 1 - stats.t.cdf(t_stat, df)
 
     st.write(f"t 统计量 = {t_stat:.4f}")
     st.write(f"p 值 = {p_value:.4f}")
@@ -123,28 +116,15 @@ def main():
     else:
         st.info(f"✅ p ≥ {alpha}，不拒绝 H0 → 样本均值与 μ₀ 无显著差异")
 
-    # 可选图示 t_stat
-    st.subheader("样本均值假设检验")
+    # 绘图 t_stat
+    st.subheader("PDF")
     fig2, ax2 = plt.subplots(figsize=(8,5))
     ax2.plot(x, y, label=f"t-distribution PDF (df={df})")
-    ax2.fill_between(x, 0, y, where=(x >= accept_low) & (x <= accept_high), color="lightgreen", alpha=0.3, label="Acceptance Region")
-    ax2.fill_between(x, 0, y, where=(x < accept_low) | (x > accept_high), color="lightcoral", alpha=0.3, label="Rejection Region")
 
-    # t_stat 红线
-    x_tstat = mu0 + t_stat*(S/np.sqrt(n))
-    y_tstat = stats.t.pdf((x_tstat - mean)/(S/np.sqrt(n)), df) / (S/np.sqrt(n))
-    ax2.plot([x_tstat, x_tstat], [0, y_tstat], color='purple', linestyle='--', label="t_stat for μ₀")
-
-    ax2.set_xlabel("t")
-    ax2.set_ylabel("Probability Density")
-    ax2.set_title("Sample Mean Hypothesis Test PDF")
-    ax2.grid(True)
-    ax2.legend()
-    st.pyplot(fig2)
-
-
-# ================================
-# 入口
-# ================================
-if __name__ == "__main__":
-    main()
+    # 拒绝域填充
+    if tail_choice == "two-tailed":
+        ax2.fill_between(x, 0, y, where=(x < accept_low) | (x > accept_high), color="lightcoral", alpha=0.3, label="rejection region")
+        ax2.fill_between(x, 0, y, where=(x >= accept_low) & (x <= accept_high), color="lightgreen", alpha=0.3, label="acceptance region")
+    elif tail_choice == "left-tailed":
+        ax2.fill_between(x, 0, y, where=(x <= mean + t_crit*S/np.sqrt(n)), color="lightgreen", alpha=0.3, label="acceptance region")
+        ax2.fill_between(x, 0, y, where=(x < x_min) | (x > mean + t_crit*S/np.sqrt(n*_
