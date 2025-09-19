@@ -98,10 +98,10 @@ def main():
 
     # 右图：原始数据尺度
     ax[1].axvline(mean, color="black", label=f"均值 {mean:.2f}")
-    ax[1].axvspan(ci_low, ci_high, color="blue", alpha=0.3, label="均值置信区间")
-    ax[1].axvspan(pred_low, pred_high, color="orange", alpha=0.3, label="预测区间")
+    ax[1].axvspan(ci_low, ci_high, color="blue", alpha=0.3, label="confidence interval")
+    ax[1].axvspan(pred_low, pred_high, color="orange", alpha=0.3, label="your predict")
     ax[1].axvline(user_prediction, color="red", linestyle="--", label=f"预测值 {user_prediction}")
-    ax[1].set_title("原始数据尺度")
+    ax[1].set_title("original")
     ax[1].set_yticks([])
     min_val = min(data + [pred_low, ci_low, user_prediction])
     max_val = max(data + [pred_high, ci_high, user_prediction])
