@@ -73,7 +73,6 @@ if pred_low <= user_prediction <= pred_high:
 else:
     st.error("❌ 预测值落在 rejection region → 预测值不合理")
 
-# ---------------------------
 # 绘制预测值 PDF
 x = np.linspace(mean - 4*S, mean + 4*S, 500)
 y = stats.t.pdf((x - mean)/S, df)/S  # 正确缩放PDF
@@ -91,3 +90,63 @@ ax.legend()
 plt.tight_layout()
 st.pyplot(fig)
 
+# ---------------------------
+# 功能 2：样本均值假设检验
+st.subheader("💊 功能 2：样本均值假设检验")
+mu0 = st.number_input("请输入总体均值 μ₀:", value=0.0)
+
+# 样本均值 t 统计量
+t_stat = (mean - mu0)/(S/np.sqrt(n))
+
+# 双尾
+t_crit_two = stats.t.ppf(1 - alpha/2, df)
+# 自动单尾
+if mean > mu0:
+    t_crit_one_val = t_crit_two  # right-tailed
+    tail_text = "right-tailed (μ > μ₀)"
+else:
+    t_crit_one_val = -t_crit_two  # left-tailed
+    tail_text = "left-tailed (μ < μ₀)"
+
+p_two = 2*(1 - stats.t.cdf(abs(t_stat), df))
+p_one = 1 - stats.t.cdf(t_stat, df) if mean > mu0 else stats.t.cdf(t_stat, df)
+
+st.markdown(f"公式：$$t = \\frac{{\\bar{{X}} - μ₀}}{{S/\\sqrt{{n}}}}$$")
+st.markdown(f"具体计算：$$t = ({mean:.4f} - {mu0}) / ({S:.4f} / sqrt({n})) = {t_stat:.4f}$$")
+st.markdown(f"双尾临界值 ±t_crit = ±{t_crit_two:.4f}, 自动单尾临界值 t_crit = {t_crit_one_val:.4f}")
+
+# 双尾结果
+if abs(t_stat) <= t_crit_two:
+    st.info(f"✅ 双尾：样本均值落在 acceptance region → 没有足够证据证明 μ ≠ μ₀")
+else:
+    st.error(f"❌ 双尾：样本均值落在 rejection region → 样本均值显著不同于 μ₀")
+
+# 单尾结果
+if (mean > mu0 and t_stat > t_crit_one_val) or (mean < mu0 and t_stat < t_crit_one_val):
+    st.error(f"❌ 单尾 ({tail_text})：样本均值落在 rejection region")
+else:
+    st.info(f"✅ 单尾 ({tail_text})：样本均值落在 acceptance region")
+
+# 绘图 PDF 功能2（以 mu0 为中心）
+x2 = np.linspace(mu0 - 4*S/np.sqrt(n), mu0 + 4*S/np.sqrt(n), 500)
+y2 = stats.t.pdf((x2 - mu0)/(S/np.sqrt(n)), df)/(S/np.sqrt(n))
+
+fig2, ax2 = plt.subplots(figsize=(8,5))
+ax2.plot(x2, y2, label="PDF")
+accept_low2 = mu0 - t_crit_two*S/np.sqrt(n)
+accept_high2 = mu0 + t_crit_two*S/np.sqrt(n)
+ax2.fill_between(x2, 0, y2, where=(x2 >= accept_low2) & (x2 <= accept_high2), color="lightgreen", alpha=0.3, label="acceptance region")
+ax2.fill_between(x2, 0, y2, where=(x2 < accept_low2) | (x2 > accept_high2), color="lightcoral", alpha=0.3, label="rejection region")
+
+# 样本均值红线和数值标注
+y_mean2 = stats.t.pdf((mean - mu0)/(S/np.sqrt(n)), df)/(S/np.sqrt(n))
+ax2.plot([mean, mean], [0, y_mean2], color='purple', linestyle='--', label=f"Sample mean = {mean:.2f}")
+ax2.text(mean, y_mean2*1.05, f"{mean:.2f}", color='purple', ha='center')
+
+ax2.set_xlabel("t")
+ax2.set_ylabel("Probability Density")
+ax2.set_title("Sample Mean PDF")
+ax2.grid(True)
+ax2.legend()
+plt.tight_layout()
+st.pyplot(fig2)
