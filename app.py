@@ -145,4 +145,18 @@ else:
 
 # 绘制单尾图
 x3 = np.linspace(conf_low_one - 0.5*S/np.sqrt(n), conf_high_one + 0.5*S/np.sqrt(n), 500)
-y3 = stats.t.pdf((x3 - mu0)/(S/np
+y3 = stats.t.pdf((x3 - mu0)/(S/np.sqrt(n)), df)/(S/np.sqrt(n))
+fig3, ax3 = plt.subplots(figsize=(8,5))
+ax3.plot(x3, y3, label="PDF")
+ax3.fill_between(x3, 0, y3, where=(x3 >= conf_low_one) & (x3 <= conf_high_one), color="lightgreen", alpha=0.3, label="confidence interval")
+# 样本均值红点
+y_mean3 = stats.t.pdf((mean - mu0)/(S/np.sqrt(n)), df)/(S/np.sqrt(n))
+ax3.plot(mean, y_mean3, 'ro', label=f"Sample mean = {mean:.2f}")
+
+ax3.set_xlabel("t")
+ax3.set_ylabel("Probability Density")
+ax3.set_title("PDF")
+ax3.grid(True)
+ax3.legend()
+plt.tight_layout()
+st.pyplot(fig3)
