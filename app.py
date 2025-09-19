@@ -92,7 +92,7 @@ def main():
 
     # ---------------------------
     # 绘图：t 分布 + 接受/拒绝域 + 用户预测值
-    st.subheader("t PDF")
+    st.subheader("PDF")
     fig, ax = plt.subplots(figsize=(8, 5))
     x = np.linspace(-4, 4, 500)
     t_pdf = stats.t.pdf(x, df)
@@ -107,7 +107,7 @@ def main():
     # 用户预测值
     ax.plot(t_val, stats.t.pdf(t_val, df), 'ro', label=f"Your prediction")
 
-    ax.set_title("t-Distribution PDF")
+    ax.set_title("Probability density function")
     ax.set_xlabel("t")
     ax.set_ylabel("Probability Density")
     ax.grid(True)
