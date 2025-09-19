@@ -98,7 +98,7 @@ mu0 = st.number_input("请输入总体均值 μ₀:", value=0.0)
 # 样本均值 t 统计量
 t_stat = (mean - mu0)/(S/np.sqrt(n))
 
-# 双尾
+# 双尾临界值
 t_crit_two = stats.t.ppf(1 - alpha/2, df)
 # 自动单尾
 if mean > mu0:
@@ -108,26 +108,20 @@ else:
     t_crit_one_val = -t_crit_two  # left-tailed
     tail_text = "left-tailed (μ < μ₀)"
 
-p_two = 2*(1 - stats.t.cdf(abs(t_stat), df))
-p_one = 1 - stats.t.cdf(t_stat, df) if mean > mu0 else stats.t.cdf(t_stat, df)
-
-st.markdown(f"公式：$$t = \\frac{{\\bar{{X}} - μ₀}}{{S/\\sqrt{{n}}}}$$")
-st.markdown(f"具体计算：$$t = ({mean:.4f} - {mu0}) / ({S:.4f} / sqrt({n})) = {t_stat:.4f}$$")
-st.markdown(f"双尾临界值 ±t_crit = ±{t_crit_two:.4f}, 自动单尾临界值 t_crit = {t_crit_one_val:.4f}")
-
-# 双尾结果
+# 双尾结论
 if abs(t_stat) <= t_crit_two:
-    st.info(f"✅ 双尾：样本均值落在 acceptance region → 没有足够证据证明 μ ≠ μ₀")
+    st.info(f"双尾检验：样本均值落在接受域 → 没有足够证据证明 μ ≠ μ₀")
 else:
-    st.error(f"❌ 双尾：样本均值落在 rejection region → 样本均值显著不同于 μ₀")
+    st.error(f"双尾检验：样本均值落在拒绝域 → 有足够证据证明 μ ≠ μ₀")
 
-# 单尾结果
+# 单尾结论
 if (mean > mu0 and t_stat > t_crit_one_val) or (mean < mu0 and t_stat < t_crit_one_val):
-    st.error(f"❌ 单尾 ({tail_text})：样本均值落在 rejection region")
+    direction = "大于 μ₀" if mean > mu0 else "小于 μ₀"
+    st.error(f"单尾检验 ({tail_text})：样本均值落在拒绝域 → 有足够证据证明均值{direction}")
 else:
-    st.info(f"✅ 单尾 ({tail_text})：样本均值落在 acceptance region")
+    st.info(f"单尾检验 ({tail_text})：样本均值落在接受域 → 没有足够证据证明均值与 μ₀ 不同")
 
-# 绘图 PDF 功能2（以 mu0 为中心）
+# 绘图 PDF
 x2 = np.linspace(mu0 - 4*S/np.sqrt(n), mu0 + 4*S/np.sqrt(n), 500)
 y2 = stats.t.pdf((x2 - mu0)/(S/np.sqrt(n)), df)/(S/np.sqrt(n))
 
