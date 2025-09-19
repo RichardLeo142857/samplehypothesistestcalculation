@@ -42,7 +42,7 @@ def main():
 
     # ---------------------------
     # 显示样本统计量及公式
-    st.subheader("样本统计量")
+    st.subheader("📌 样本统计量")
     st.write(f"样本量 n = {n}")
 
     mean_formula = f"\\bar{{X}} = ( {' + '.join([str(x) for x in data])} ) / {n} = {mean:.4f}"
@@ -56,7 +56,7 @@ def main():
 
     # ---------------------------
     # 功能 1：预测值检验
-    st.subheader("预测值检验")
+    st.subheader("📊 功能 1：预测值检验")
 
     user_prediction = st.number_input("请输入你的预测值:", value=95.0)
     t_crit = stats.t.ppf(1 - alpha/2, df)
@@ -70,7 +70,7 @@ def main():
         st.error(f"❌ 预测值 {user_prediction} 落在 rejection region，拒绝 H0")
 
     # 绘图
-    st.subheader("PDF")
+    st.subheader("📈 预测值 PDF")
     x_min = min(data) - 10
     x_max = max(data) + 10
     x = np.linspace(x_min, x_max, 500)
@@ -93,7 +93,7 @@ def main():
 
     # ---------------------------
     # 功能 2：样本均值假设检验
-    st.subheader("样本均值假设检验（单尾/双尾）")
+    st.subheader("💊 功能 2：样本均值假设检验（单尾/双尾）")
     mu0 = st.number_input("第一步：你认为总体均值 μ₀ 是多少？", value=0.0)
 
     tail_choice = st.radio("第二步：选择检验类型", ["two-tailed", "left-tailed", "right-tailed"])
@@ -127,4 +127,7 @@ def main():
         ax2.fill_between(x, 0, y, where=(x >= accept_low) & (x <= accept_high), color="lightgreen", alpha=0.3, label="acceptance region")
     elif tail_choice == "left-tailed":
         ax2.fill_between(x, 0, y, where=(x <= mean + t_crit*S/np.sqrt(n)), color="lightgreen", alpha=0.3, label="acceptance region")
-        ax2.fill_between(x, 0, y, where=(x < x_min) | (x > mean + t_crit*S/np.sqrt(n*_
+        ax2.fill_between(x, 0, y, where=(x < x_min) | (x > mean + t_crit*S/np.sqrt(n)), color="lightcoral", alpha=0.3, label="rejection region")
+    else:  # right-tailed
+        ax2.fill_between(x, 0, y, where=(x >= mean - t_crit*S/np.sqrt(n)), color="lightgreen", alpha=0.3, label="acceptance region")
+        ax2.fill_between(x, 0, y, where=(x < mean - t_crit*S/np.sqrt(n)) | (x > x_max), color="lightcoral", alpha=
