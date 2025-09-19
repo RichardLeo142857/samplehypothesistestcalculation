@@ -127,8 +127,8 @@ def main():
     st.subheader("样本均值假设检验")
     fig2, ax2 = plt.subplots(figsize=(8,5))
     ax2.plot(x, y, label=f"t-distribution PDF (df={df})")
-    ax2.fill_between(x, 0, y, where=(x >= accept_low) & (x <= accept_high), color="lightgreen", alpha=0.3, label="接受域 (Acceptance Region)")
-    ax2.fill_between(x, 0, y, where=(x < accept_low) | (x > accept_high), color="lightcoral", alpha=0.3, label="拒绝域 (Rejection Region)")
+    ax2.fill_between(x, 0, y, where=(x >= accept_low) & (x <= accept_high), color="lightgreen", alpha=0.3, label="Acceptance Region")
+    ax2.fill_between(x, 0, y, where=(x < accept_low) | (x > accept_high), color="lightcoral", alpha=0.3, label="Rejection Region")
 
     # t_stat 红线
     x_tstat = mu0 + t_stat*(S/np.sqrt(n))
