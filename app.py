@@ -24,7 +24,7 @@ def main():
     try:
         data = [float(x) for x in data_input.replace(",", " ").split()]
     except:
-        st.error("❌ 数据格式错误，标点符号打英文的，输入数字，用逗号或空格分隔")
+        st.error("❌ 数据格式错误，请输入数字，用逗号或空格分隔")
         return
 
     if len(data) < 2:
@@ -63,7 +63,7 @@ def main():
     t_val = (user_prediction - mean) / (S / np.sqrt(n))
 
     # ---------------------------
-    # 显示结果（中文）
+    # 显示结果
     st.subheader("📌 结果")
     st.write(f"样本量 n = {n}")
     st.write(f"样本均值 = **{mean:.4f}**")
@@ -76,13 +76,13 @@ def main():
     # ---------------------------
     # 用户预测值评价：落在接受域还是拒绝域
     if pred_low <= user_prediction <= pred_high:
-        st.success(f"✅ 预测值 {user_prediction} 落在 **接受域（Acceptance region）**，接受 H0")
+        st.success(f"✅ 预测值 {user_prediction} 落在 **接受域**，接受 H0")
     else:
-        st.error(f"❌ 预测值 {user_prediction} 落在 **拒绝域（Rejection region）**，拒绝 H0")
+        st.error(f"❌ 预测值 {user_prediction} 落在 **拒绝域**，拒绝 H0")
 
     # ---------------------------
-    # 绘图：只保留 t 分布
-    st.subheader("📈 t-分布PDF")
+    # 绘图：t 分布 + 接受域/拒绝域 + 用户预测值
+    st.subheader("📈 t分布pdf")
     fig, ax = plt.subplots(figsize=(8, 5))
     x = np.linspace(-4, 4, 500)
     t_pdf = stats.t.pdf(x, df)
@@ -92,12 +92,15 @@ def main():
     ax.axvline(-t_crit, color="blue", linestyle="--", label="临界值")
     ax.axvline(t_crit, color="blue", linestyle="--")
 
+    # 填充接受域
+    ax.fill_between(x, 0, t_pdf, where=(x >= -t_crit) & (x <= t_crit), color="lightgreen", alpha=0.3, label="Acceptance region (Accept H0)")
+
     # 用户预测值
-    ax.axvline(t_val, color="red", linestyle="-", label=f"预测值 {user_prediction}")
+    ax.plot(t_val, stats.t.pdf(t_val, df), 'ro', label=f"预测值 {user_prediction}")
 
     ax.set_title("t-Distribution PDF")
-    ax.set_xlabel("t 值")
-    ax.set_ylabel("概率密度")
+    ax.set_xlabel("t")
+    ax.set_ylabel("probability density")
     ax.grid(True)
     ax.legend()
 
