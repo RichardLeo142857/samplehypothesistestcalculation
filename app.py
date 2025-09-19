@@ -90,23 +90,11 @@ def main():
     ax[0].axvline(t_crit, color="blue", linestyle="--")
     t_val = (user_prediction - mean) / (S / np.sqrt(n))
     ax[0].axvline(t_val, color="red", linestyle="-", label=f"预测值 {user_prediction}")
-    ax[0].set_title("t 分布概率密度函数")
-    ax[0].set_xlabel("t 值")
-    ax[0].set_ylabel("概率密度")
+    ax[0].set_title("t PDF")
+    ax[0].set_xlabel("t")
+    ax[0].set_ylabel("Probability density")
     ax[0].grid(True)
     ax[0].legend()
-
-    # 右图：原始数据尺度
-    ax[1].axvline(mean, color="black", label=f"均值 {mean:.2f}")
-    ax[1].axvspan(ci_low, ci_high, color="blue", alpha=0.3, label="confidence interval")
-    ax[1].axvspan(pred_low, pred_high, color="orange", alpha=0.3, label="your predict")
-    ax[1].axvline(user_prediction, color="red", linestyle="--", label=f"预测值 {user_prediction}")
-    ax[1].set_title("original")
-    ax[1].set_yticks([])
-    min_val = min(data + [pred_low, ci_low, user_prediction])
-    max_val = max(data + [pred_high, ci_high, user_prediction])
-    ax[1].set_xlim(min_val - 5, max_val + 5)
-    ax[1].legend()
 
     st.pyplot(fig)
 
