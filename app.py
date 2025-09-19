@@ -57,20 +57,20 @@ def main():
     # ---------------------------
     # 功能 1：预测值检验
     st.subheader("📊 功能 1：预测值检验")
-    user_prediction = st.number_input("请输入你的预测值:", value=95.0)
+    user_prediction = st.number_input("Your prediction:", value=95.0)
     t_crit = stats.t.ppf(1 - alpha/2, df)
     pred_low = mean - t_crit * S * np.sqrt(1 + 1/n)
     pred_high = mean + t_crit * S * np.sqrt(1 + 1/n)
-    st.write(f"{conf_choice} 新观测值预测区间 = **({pred_low:.4f}, {pred_high:.4f})**")
+    st.write(f"{conf_choice} 预测区间 = **({pred_low:.4f}, {pred_high:.4f})**")
 
     # 显示公式
     st.markdown(f"公式：$$t = \\frac{{X_{{pred}} - \\bar{{X}}}}{{S\\sqrt{{1 + 1/n}}}}$$")
-    st.markdown(f"具体计算：$$t = ({user_prediction} - {mean:.4f}) / ({S:.4f} * sqrt(1 + 1/{n}))$$")
+    st.markdown(f"具体计算：$$t = ({user_prediction} - {mean:.4f}) / ({S:.4f} * \\sqrt{{1 + 1/{n}}})$$")
 
     if pred_low <= user_prediction <= pred_high:
-        st.success(f"✅ 预测值 {user_prediction} 落在 acceptance region，接受 H0")
+        st.success(f"✅ 预测值落在 acceptance region → 预测值合理")
     else:
-        st.error(f"❌ 预测值 {user_prediction} 落在 rejection region，拒绝 H0")
+        st.error(f"❌ 预测值落在 rejection region → 预测值不合理")
 
     # 绘图 PDF
     st.subheader("📈 预测值 PDF")
@@ -99,44 +99,49 @@ def main():
     st.subheader("💊 功能 2：样本均值假设检验")
     mu0 = st.number_input("请输入总体均值 μ₀:", value=0.0)
 
-    # t 统计量
     t_stat = (mean - mu0) / (S / np.sqrt(n))
-    # 双尾
+    t_crit_two = stats.t.ppf(1 - alpha/2, df)
+    t_crit_one = stats.t.ppf(1 - alpha, df)
+
+    # 双尾检验
     p_two = 2 * (1 - stats.t.cdf(abs(t_stat), df))
     # 单尾自动选择
     if mean > mu0:
         p_one = 1 - stats.t.cdf(t_stat, df)
         tail_text = "right-tailed (μ > μ₀)"
+        t_crit_one_val = t_crit_one
     else:
         p_one = stats.t.cdf(t_stat, df)
         tail_text = "left-tailed (μ < μ₀)"
+        t_crit_one_val = -t_crit_one
 
-    # 显示公式
+    # 显示公式和计算
     st.markdown(f"公式（t 统计量）：$$t = \\frac{{\\bar{{X}} - μ₀}}{{S / \\sqrt{{n}}}}$$")
-    st.markdown(f"具体计算：$$t = ({mean:.4f} - {mu0}) / ({S:.4f} / sqrt({n})) = {t_stat:.4f}$$")
+    st.markdown(f"具体计算：$$t = ({mean:.4f} - {mu0}) / ({S:.4f} / \\sqrt{{{n}}}) = {t_stat:.4f}$$")
+    st.markdown(f"临界值（双尾） ±t_crit = ±{t_crit_two:.4f}，单尾 t_crit = {t_crit_one_val:.4f}")
 
     # 双尾结果
     st.write(f"双尾检验 p 值 = {p_two:.4f}")
-    if p_two < alpha:
-        st.success(f"❌ 双尾：p < {alpha}，拒绝 H0 → 样本均值显著不同于 μ₀")
+    if abs(t_stat) <= t_crit_two:
+        st.info(f"✅ 双尾：样本均值落在 acceptance region → 没有足够证据证明 μ ≠ μ₀")
     else:
-        st.info(f"✅ 双尾：p ≥ {alpha}，没有足够证据拒绝 H0")
+        st.error(f"❌ 双尾：样本均值落在 rejection region → 样本均值显著不同于 μ₀")
 
     # 单尾结果
     st.write(f"单尾 ({tail_text}) p 值 = {p_one:.4f}")
-    if p_one < alpha:
-        st.success(f"❌ 单尾：p < {alpha}，拒绝 H0 → 样本均值显著 {tail_text}")
+    if (mean > mu0 and t_stat > t_crit_one) or (mean < mu0 and t_stat < t_crit_one_val):
+        st.error(f"❌ 单尾：样本均值落在 rejection region → 样本均值显著 {tail_text}")
     else:
-        st.info(f"✅ 单尾：p ≥ {alpha}，没有足够证据拒绝 H0")
+        st.info(f"✅ 单尾：样本均值落在 acceptance region → 没有足够证据拒绝 H0")
 
     # 绘图 PDF
     st.subheader("📈 样本均值假设检验 PDF")
     fig2, ax2 = plt.subplots(figsize=(8,5))
     ax2.plot(x, y, label=f"t-distribution PDF (df={df})")
 
-    # 拒绝域/接受域（双尾为参考）
-    ax2.fill_between(x, 0, y, where=(x < accept_low) | (x > accept_high), color="lightcoral", alpha=0.3, label="rejection region")
-    ax2.fill_between(x, 0, y, where=(x >= accept_low) & (x <= accept_high), color="lightgreen", alpha=0.3, label="acceptance region")
+    # 拒绝域/接受域（双尾）
+    ax2.fill_between(x, 0, y, where=(x < mean - t_crit_two*S/np.sqrt(n)) | (x > mean + t_crit_two*S/np.sqrt(n)), color="lightcoral", alpha=0.3, label="rejection region")
+    ax2.fill_between(x, 0, y, where=(x >= mean - t_crit_two*S/np.sqrt(n)) & (x <= mean + t_crit_two*S/np.sqrt(n)), color="lightgreen", alpha=0.3, label="acceptance region")
 
     # 样本均值红线
     y_mean = stats.t.pdf((mean - mean)/(S/np.sqrt(n)), df) / (S/np.sqrt(n))
@@ -148,6 +153,7 @@ def main():
     ax2.grid(True)
     ax2.legend()
     st.pyplot(fig2)
+
 
 if __name__ == "__main__":
     main()
