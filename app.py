@@ -18,31 +18,31 @@ def main():
 """)
 
     # ---------------------------
-    # User input for data
-    st.subheader("Data Input")
-    data_input = st.text_area("Enter your data (comma or space separated):", "82, 85, 90, 87, 88, 91, 84")
+    # 用户输入数据
+    st.subheader("数据输入")
+    data_input = st.text_area("请输入你的数据（用逗号或空格分隔）:", "82, 85, 90, 87, 88, 91, 84")
     try:
         data = [float(x) for x in data_input.replace(",", " ").split()]
     except:
-        st.error("❌ Invalid data format. Please enter numbers separated by commas or spaces.")
+        st.error("❌ 数据格式错误，请输入数字，用逗号或空格分隔")
         return
 
     if len(data) < 2:
-        st.error("❌ You need at least two data points.")
+        st.error("❌ 数据量至少需要两个点")
         return
 
     # ---------------------------
-    # Confidence level
+    # 用户选择置信水平
     alpha_map = {"90%": 0.10, "95%": 0.05, "99%": 0.01}
-    conf_choice = st.radio("Select confidence level:", list(alpha_map.keys()), index=1)
+    conf_choice = st.radio("选择置信水平:", list(alpha_map.keys()), index=1)
     alpha = alpha_map[conf_choice]
 
     # ---------------------------
-    # User prediction
-    user_prediction = st.number_input("Enter your predicted value:", value=95.0)
+    # 用户预测值
+    user_prediction = st.number_input("请输入你的预测值:", value=95.0)
 
     # ---------------------------
-    # Calculations
+    # 计算
     n = len(data)
     mean = np.mean(data)
     S2 = np.var(data, ddof=1)
@@ -51,16 +51,16 @@ def main():
 
     t_crit = stats.t.ppf(1 - alpha/2, df)
 
-    # Confidence interval for mean
+    # 总体均值置信区间
     ci_low = mean - t_crit * S / np.sqrt(n)
     ci_high = mean + t_crit * S / np.sqrt(n)
 
-    # Prediction interval for new observation
+    # 新观测值预测区间
     pred_low = mean - t_crit * S * np.sqrt(1 + 1/n)
     pred_high = mean + t_crit * S * np.sqrt(1 + 1/n)
 
     # ---------------------------
-    # Display results
+    # 显示结果（英文）
     st.subheader("📌 Results")
     st.write(f"Sample size n = {n}")
     st.write(f"Sample mean = **{mean:.4f}**")
@@ -76,18 +76,18 @@ def main():
         st.error(f"❌ Your predicted value {user_prediction} is outside the prediction interval, not reasonable.")
 
     # ---------------------------
-    # Visualization: t-distribution only
-    st.subheader("📈 t-Distribution Visualization")
-    fig, ax = plt.subplots(figsize=(8, 5))  # Single plot only
+    # 绘图：只保留 t 分布
+    st.subheader("📈 t-分布可视化")
+    fig, ax = plt.subplots(figsize=(8, 5))
     x = np.linspace(-4, 4, 500)
     t_pdf = stats.t.pdf(x, df)
     ax.plot(x, t_pdf, label=f"t-distribution (df={df})")
 
-    # Critical values
+    # 临界值
     ax.axvline(-t_crit, color="blue", linestyle="--", label="Critical value")
     ax.axvline(t_crit, color="blue", linestyle="--")
 
-    # User prediction
+    # 用户预测值
     t_val = (user_prediction - mean) / (S / np.sqrt(n))
     ax.axvline(t_val, color="red", linestyle="-", label=f"Prediction {user_prediction}")
 
@@ -101,8 +101,9 @@ def main():
 
 
 # ================================
-# Entry point
+# 入口
 # ================================
 if __name__ == "__main__":
     main()
+
 
