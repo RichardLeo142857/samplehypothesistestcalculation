@@ -24,7 +24,7 @@ def main():
     try:
         data = [float(x) for x in data_input.replace(",", " ").split()]
     except:
-        st.error("❌ 数据格式错误，请输入数字，用逗号或空格分隔")
+        st.error("❌ 数据格式错误，标点符号打英文的，输入数字，用逗号或空格分隔")
         return
 
     if len(data) < 2:
@@ -76,13 +76,13 @@ def main():
     # ---------------------------
     # 用户预测值评价：落在接受域还是拒绝域
     if pred_low <= user_prediction <= pred_high:
-        st.success(f"✅ 预测值 {user_prediction} 落在 **接受域**，接受 H0")
+        st.success(f"✅ 预测值 {user_prediction} 落在 **接受域（Acceptance region）**，接受 H0")
     else:
-        st.error(f"❌ 预测值 {user_prediction} 落在 **拒绝域**，拒绝 H0")
+        st.error(f"❌ 预测值 {user_prediction} 落在 **拒绝域（Rejection region）**，拒绝 H0")
 
     # ---------------------------
     # 绘图：只保留 t 分布
-    st.subheader("📈 t-分布可视化")
+    st.subheader("📈 t-分布PDF")
     fig, ax = plt.subplots(figsize=(8, 5))
     x = np.linspace(-4, 4, 500)
     t_pdf = stats.t.pdf(x, df)
