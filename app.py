@@ -134,7 +134,7 @@ def main():
     else:
         st.info(f"✅ 单尾：样本均值落在 acceptance region → 没有足够证据拒绝 H0")
 
-    # 绘图 PDF 功能2（以 μ0 为中心）
+    # 绘图 PDF 功能2（以 μ0 为中心，显示样本均值）
     st.subheader("📈 样本均值假设检验 PDF")
     x_min2 = mu0 - 4*S/np.sqrt(n)
     x_max2 = mu0 + 4*S/np.sqrt(n)
@@ -144,24 +144,5 @@ def main():
     fig2, ax2 = plt.subplots(figsize=(8,5))
     ax2.plot(x2, y2, label=f"t-distribution PDF (df={df})")
 
-    # 拒绝域/接受域（双尾为参考）
-    accept_low2 = mu0 - t_crit_two*S/np.sqrt(n)
-    accept_high2 = mu0 + t_crit_two*S/np.sqrt(n)
-    ax2.fill_between(x2, 0, y2, where=(x2 >= accept_low2) & (x2 <= accept_high2), color="lightgreen", alpha=0.3, label="acceptance region")
-    ax2.fill_between(x2, 0, y2, where=(x2 < accept_low2) | (x2 > accept_high2), color="lightcoral", alpha=0.3, label="rejection region")
-
-   # 样本均值红线
-y_mean2 = stats.t.pdf((mean - mu0)/(S/np.sqrt(n)), df) / (S/np.sqrt(n))
-ax2.plot([mean, mean], [0, y_mean2], color='purple', linestyle='--', label="Sample mean")
-ax2.text(mean, y_mean2*1.05, f"{mean:.2f}", color='purple', ha='center')  # 添加标注
-
-    ax2.set_xlabel("t")
-    ax2.set_ylabel("Probability Density")
-    ax2.set_title("Sample Mean PDF")
-    ax2.grid(True)
-    ax2.legend()
-    st.pyplot(fig2)
-
-
-if __name__ == "__main__":
-    main()
+    # 拒绝域/接受域（双尾）
+    accept_low2 = mu0 - t_crit_two*S/np
