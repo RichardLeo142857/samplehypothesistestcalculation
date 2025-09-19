@@ -88,15 +88,11 @@ def main():
     t_pdf = stats.t.pdf(x, df)
     ax.plot(x, t_pdf, label=f"t-distribution (df={df})")
 
-    # 临界值
-    ax.axvline(-t_crit, color="blue", linestyle="--", label="临界值")
-    ax.axvline(t_crit, color="blue", linestyle="--")
-
     # 填充接受域
     ax.fill_between(x, 0, t_pdf, where=(x >= -t_crit) & (x <= t_crit), color="lightgreen", alpha=0.3, label="Acceptance region (Accept H0)")
 
     # 用户预测值
-    ax.plot(t_val, stats.t.pdf(t_val, df), 'ro', label=f"预测值 {user_prediction}")
+    ax.plot(t_val, stats.t.pdf(t_val, df), 'ro', label=f"Your prediction {user_prediction}")
 
     ax.set_title("t-Distribution PDF")
     ax.set_xlabel("t")
