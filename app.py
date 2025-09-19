@@ -37,11 +37,11 @@ def main():
     # ---------------------------
     # 用户选择显著性水平
     alpha_map = {"90%": 0.10, "95%": 0.05, "99%": 0.01}
-    conf_choice = st.radio("选择显著性水平:", list(alpha_map.keys()), index=1)
+    conf_choice = st.radio("选择置信水平:", list(alpha_map.keys()), index=1)
     alpha = alpha_map[conf_choice]
 
     # ---------------------------
-    # 显示样本统计量及公式
+    # 样本统计量显示
     st.subheader("📌 样本统计量")
     st.write(f"样本量 n = {n}")
 
@@ -57,7 +57,6 @@ def main():
     # ---------------------------
     # 功能 1：预测值检验
     st.subheader("📊 功能 1：预测值检验")
-
     user_prediction = st.number_input("请输入你的预测值:", value=95.0)
     t_crit = stats.t.ppf(1 - alpha/2, df)
     pred_low = mean - t_crit * S * np.sqrt(1 + 1/n)
@@ -69,7 +68,7 @@ def main():
     else:
         st.error(f"❌ 预测值 {user_prediction} 落在 rejection region，拒绝 H0")
 
-    # 绘图
+    # 绘图 PDF
     st.subheader("📈 预测值 PDF")
     x_min = min(data) - 10
     x_max = max(data) + 10
@@ -95,12 +94,9 @@ def main():
     # 功能 2：样本均值假设检验
     st.subheader("💊 功能 2：样本均值假设检验（单尾/双尾）")
     mu0 = st.number_input("第一步：你认为总体均值 μ₀ 是多少？", value=0.0)
-
     tail_choice = st.radio("第二步：选择检验类型", ["two-tailed", "left-tailed", "right-tailed"])
 
     t_stat = (mean - mu0) / (S / np.sqrt(n))
-
-    # 计算 p 值
     if tail_choice == "two-tailed":
         p_value = 2 * (1 - stats.t.cdf(abs(t_stat), df))
     elif tail_choice == "left-tailed":
@@ -116,12 +112,12 @@ def main():
     else:
         st.info(f"✅ p ≥ {alpha}，不拒绝 H0 → 样本均值与 μ₀ 无显著差异")
 
-    # 绘图 t_stat
-    st.subheader("PDF")
+    # 绘图 PDF
+    st.subheader("📈 样本均值假设检验 PDF")
     fig2, ax2 = plt.subplots(figsize=(8,5))
     ax2.plot(x, y, label=f"t-distribution PDF (df={df})")
 
-    # 拒绝域填充
+    # 拒绝域/接受域
     if tail_choice == "two-tailed":
         ax2.fill_between(x, 0, y, where=(x < accept_low) | (x > accept_high), color="lightcoral", alpha=0.3, label="rejection region")
         ax2.fill_between(x, 0, y, where=(x >= accept_low) & (x <= accept_high), color="lightgreen", alpha=0.3, label="acceptance region")
@@ -130,4 +126,20 @@ def main():
         ax2.fill_between(x, 0, y, where=(x < x_min) | (x > mean + t_crit*S/np.sqrt(n)), color="lightcoral", alpha=0.3, label="rejection region")
     else:  # right-tailed
         ax2.fill_between(x, 0, y, where=(x >= mean - t_crit*S/np.sqrt(n)), color="lightgreen", alpha=0.3, label="acceptance region")
-        ax2.fill_between(x, 0, y, where=(x < mean - t_crit*S/np.sqrt(n)) | (x > x_max), color="lightcoral", alpha=
+        ax2.fill_between(x, 0, y, where=(x < mean - t_crit*S/np.sqrt(n)) | (x > x_max), color="lightcoral", alpha=0.3, label="rejection region")
+
+    # t_stat 红线
+    x_tstat = mu0 + t_stat*(S/np.sqrt(n))
+    y_tstat = stats.t.pdf((x_tstat - mean)/(S/np.sqrt(n)), df) / (S/np.sqrt(n))
+    ax2.plot([x_tstat, x_tstat], [0, y_tstat], color='purple', linestyle='--', label="t_stat for μ₀")
+
+    ax2.set_xlabel("t")
+    ax2.set_ylabel("Probability Density")
+    ax2.set_title("Sample Mean PDF")
+    ax2.grid(True)
+    ax2.legend()
+    st.pyplot(fig2)
+
+
+if __name__ == "__main__":
+    main()
