@@ -59,21 +59,26 @@ def main():
     pred_low = mean - t_crit * S * np.sqrt(1 + 1/n)
     pred_high = mean + t_crit * S * np.sqrt(1 + 1/n)
 
-    # ---------------------------
-    # 显示结果（英文）
-    st.subheader("📌 Results")
-    st.write(f"Sample size n = {n}")
-    st.write(f"Sample mean = **{mean:.4f}**")
-    st.write(f"Sample variance = **{S2:.4f}**")
-    st.write(f"Sample standard deviation = **{S:.4f}**")
-    st.write(f"Degrees of freedom df = {df}")
-    st.write(f"{conf_choice} Confidence interval (population mean) = **({ci_low:.4f}, {ci_high:.4f})**")
-    st.write(f"{conf_choice} Prediction interval (new observation) = **({pred_low:.4f}, {pred_high:.4f})**")
+    # 计算用户预测 t 值
+    t_val = (user_prediction - mean) / (S / np.sqrt(n))
 
+    # ---------------------------
+    # 显示结果（中文）
+    st.subheader("📌 结果")
+    st.write(f"样本量 n = {n}")
+    st.write(f"样本均值 = **{mean:.4f}**")
+    st.write(f"样本方差 = **{S2:.4f}**")
+    st.write(f"样本标准差 = **{S:.4f}**")
+    st.write(f"自由度 df = {df}")
+    st.write(f"{conf_choice} 总体均值置信区间 = **({ci_low:.4f}, {ci_high:.4f})**")
+    st.write(f"{conf_choice} 新观测值预测区间 = **({pred_low:.4f}, {pred_high:.4f})**")
+
+    # ---------------------------
+    # 用户预测值评价：落在接受域还是拒绝域
     if pred_low <= user_prediction <= pred_high:
-        st.success(f"✅ Your predicted value {user_prediction} is within the prediction interval, reasonable.")
+        st.success(f"✅ 预测值 {user_prediction} 落在 **接受域**，接受 H0")
     else:
-        st.error(f"❌ Your predicted value {user_prediction} is outside the prediction interval, not reasonable.")
+        st.error(f"❌ 预测值 {user_prediction} 落在 **拒绝域**，拒绝 H0")
 
     # ---------------------------
     # 绘图：只保留 t 分布
@@ -84,16 +89,15 @@ def main():
     ax.plot(x, t_pdf, label=f"t-distribution (df={df})")
 
     # 临界值
-    ax.axvline(-t_crit, color="blue", linestyle="--", label="Critical value")
+    ax.axvline(-t_crit, color="blue", linestyle="--", label="临界值")
     ax.axvline(t_crit, color="blue", linestyle="--")
 
     # 用户预测值
-    t_val = (user_prediction - mean) / (S / np.sqrt(n))
-    ax.axvline(t_val, color="red", linestyle="-", label=f"Prediction {user_prediction}")
+    ax.axvline(t_val, color="red", linestyle="-", label=f"预测值 {user_prediction}")
 
     ax.set_title("t-Distribution PDF")
-    ax.set_xlabel("t value")
-    ax.set_ylabel("Probability Density")
+    ax.set_xlabel("t 值")
+    ax.set_ylabel("概率密度")
     ax.grid(True)
     ax.legend()
 
@@ -105,5 +109,3 @@ def main():
 # ================================
 if __name__ == "__main__":
     main()
-
-
