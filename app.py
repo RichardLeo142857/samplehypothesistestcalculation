@@ -63,6 +63,10 @@ def main():
     pred_high = mean + t_crit * S * np.sqrt(1 + 1/n)
     st.write(f"{conf_choice} 新观测值预测区间 = **({pred_low:.4f}, {pred_high:.4f})**")
 
+    # 显示公式
+    st.markdown(f"公式：$$t = \\frac{{X_{{pred}} - \\bar{{X}}}}{{S\\sqrt{{1 + 1/n}}}}$$")
+    st.markdown(f"具体计算：$$t = ({user_prediction} - {mean:.4f}) / ({S:.4f} * sqrt(1 + 1/{n}))$$")
+
     if pred_low <= user_prediction <= pred_high:
         st.success(f"✅ 预测值 {user_prediction} 落在 acceptance region，接受 H0")
     else:
@@ -92,46 +96,51 @@ def main():
 
     # ---------------------------
     # 功能 2：样本均值假设检验
-    st.subheader("💊 功能 2：样本均值假设检验（单尾/双尾）")
-    mu0 = st.number_input("第一步：你认为总体均值 μ₀ 是多少？", value=0.0)
-    tail_choice = st.radio("第二步：选择检验类型", ["two-tailed", "left-tailed", "right-tailed"])
+    st.subheader("💊 功能 2：样本均值假设检验")
+    mu0 = st.number_input("请输入总体均值 μ₀:", value=0.0)
 
+    # t 统计量
     t_stat = (mean - mu0) / (S / np.sqrt(n))
-    if tail_choice == "two-tailed":
-        p_value = 2 * (1 - stats.t.cdf(abs(t_stat), df))
-    elif tail_choice == "left-tailed":
-        p_value = stats.t.cdf(t_stat, df)
-    else:  # right-tailed
-        p_value = 1 - stats.t.cdf(t_stat, df)
-
-    st.write(f"t 统计量 = {t_stat:.4f}")
-    st.write(f"p 值 = {p_value:.4f}")
-
-    if p_value < alpha:
-        st.success(f"❌ p < {alpha}，拒绝 H0 → 样本均值显著不同于 μ₀")
+    # 双尾
+    p_two = 2 * (1 - stats.t.cdf(abs(t_stat), df))
+    # 单尾自动选择
+    if mean > mu0:
+        p_one = 1 - stats.t.cdf(t_stat, df)
+        tail_text = "right-tailed (μ > μ₀)"
     else:
-        st.info(f"✅ p ≥ {alpha}，不拒绝 H0 → 样本均值与 μ₀ 无显著差异")
+        p_one = stats.t.cdf(t_stat, df)
+        tail_text = "left-tailed (μ < μ₀)"
+
+    # 显示公式
+    st.markdown(f"公式（t 统计量）：$$t = \\frac{{\\bar{{X}} - μ₀}}{{S / \\sqrt{{n}}}}$$")
+    st.markdown(f"具体计算：$$t = ({mean:.4f} - {mu0}) / ({S:.4f} / sqrt({n})) = {t_stat:.4f}$$")
+
+    # 双尾结果
+    st.write(f"双尾检验 p 值 = {p_two:.4f}")
+    if p_two < alpha:
+        st.success(f"❌ 双尾：p < {alpha}，拒绝 H0 → 样本均值显著不同于 μ₀")
+    else:
+        st.info(f"✅ 双尾：p ≥ {alpha}，没有足够证据拒绝 H0")
+
+    # 单尾结果
+    st.write(f"单尾 ({tail_text}) p 值 = {p_one:.4f}")
+    if p_one < alpha:
+        st.success(f"❌ 单尾：p < {alpha}，拒绝 H0 → 样本均值显著 {tail_text}")
+    else:
+        st.info(f"✅ 单尾：p ≥ {alpha}，没有足够证据拒绝 H0")
 
     # 绘图 PDF
     st.subheader("📈 样本均值假设检验 PDF")
     fig2, ax2 = plt.subplots(figsize=(8,5))
     ax2.plot(x, y, label=f"t-distribution PDF (df={df})")
 
-    # 拒绝域/接受域
-    if tail_choice == "two-tailed":
-        ax2.fill_between(x, 0, y, where=(x < accept_low) | (x > accept_high), color="lightcoral", alpha=0.3, label="rejection region")
-        ax2.fill_between(x, 0, y, where=(x >= accept_low) & (x <= accept_high), color="lightgreen", alpha=0.3, label="acceptance region")
-    elif tail_choice == "left-tailed":
-        ax2.fill_between(x, 0, y, where=(x <= mean + t_crit*S/np.sqrt(n)), color="lightgreen", alpha=0.3, label="acceptance region")
-        ax2.fill_between(x, 0, y, where=(x < x_min) | (x > mean + t_crit*S/np.sqrt(n)), color="lightcoral", alpha=0.3, label="rejection region")
-    else:  # right-tailed
-        ax2.fill_between(x, 0, y, where=(x >= mean - t_crit*S/np.sqrt(n)), color="lightgreen", alpha=0.3, label="acceptance region")
-        ax2.fill_between(x, 0, y, where=(x < mean - t_crit*S/np.sqrt(n)) | (x > x_max), color="lightcoral", alpha=0.3, label="rejection region")
+    # 拒绝域/接受域（双尾为参考）
+    ax2.fill_between(x, 0, y, where=(x < accept_low) | (x > accept_high), color="lightcoral", alpha=0.3, label="rejection region")
+    ax2.fill_between(x, 0, y, where=(x >= accept_low) & (x <= accept_high), color="lightgreen", alpha=0.3, label="acceptance region")
 
-    # t_stat 红线
-    x_tstat = mu0 + t_stat*(S/np.sqrt(n))
-    y_tstat = stats.t.pdf((x_tstat - mean)/(S/np.sqrt(n)), df) / (S/np.sqrt(n))
-    ax2.plot([x_tstat, x_tstat], [0, y_tstat], color='purple', linestyle='--', label="t_stat for μ₀")
+    # 样本均值红线
+    y_mean = stats.t.pdf((mean - mean)/(S/np.sqrt(n)), df) / (S/np.sqrt(n))
+    ax2.plot([mean, mean], [0, y_mean], color='purple', linestyle='--', label="Sample mean")
 
     ax2.set_xlabel("t")
     ax2.set_ylabel("Probability Density")
@@ -139,7 +148,6 @@ def main():
     ax2.grid(True)
     ax2.legend()
     st.pyplot(fig2)
-
 
 if __name__ == "__main__":
     main()
