@@ -150,9 +150,10 @@ def main():
     ax2.fill_between(x2, 0, y2, where=(x2 >= accept_low2) & (x2 <= accept_high2), color="lightgreen", alpha=0.3, label="acceptance region")
     ax2.fill_between(x2, 0, y2, where=(x2 < accept_low2) | (x2 > accept_high2), color="lightcoral", alpha=0.3, label="rejection region")
 
-    # 样本均值红线
-    y_mean2 = stats.t.pdf((mean - mu0)/(S/np.sqrt(n)), df) / (S/np.sqrt(n))
-    ax2.plot([mean, mean], [0, y_mean2], color='purple', linestyle='--', label="Sample mean")
+   # 样本均值红线
+y_mean2 = stats.t.pdf((mean - mu0)/(S/np.sqrt(n)), df) / (S/np.sqrt(n))
+ax2.plot([mean, mean], [0, y_mean2], color='purple', linestyle='--', label="Sample mean")
+ax2.text(mean, y_mean2*1.05, f"{mean:.2f}", color='purple', ha='center')  # 添加标注
 
     ax2.set_xlabel("t")
     ax2.set_ylabel("Probability Density")
