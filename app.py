@@ -67,9 +67,9 @@ def main():
     st.subheader("📌 结果")
     st.write(f"样本量 n = {n}")
 
-    st.markdown(f"样本均值 = **{mean:.4f}**  \n公式：$$\\bar{{X}} = \\frac{{1}}{{n}} \\sum_{{i=1}}^{{n}} X_i$$")
-    st.markdown(f"样本方差 = **{S2:.4f}**  \n公式：$$S^2 = \\frac{{1}}{{n-1}} \\sum_{{i=1}}^{{n}} (X_i - \\bar{{X}})^2$$")
-    st.markdown(f"样本标准差 = **{S:.4f}**  \n公式：$$S = \\sqrt{{S^2}}$$")
+    st.markdown(f"样本均值 = **{mean:.4f}**  \n$$\\bar{{X}} = \\frac{{1}}{{n}} \\sum_{{i=1}}^{{n}} X_i$$")
+    st.markdown(f"样本方差 = **{S2:.4f}**  \n$$S^2 = \\frac{{1}}{{n-1}} \\sum_{{i=1}}^{{n}} (X_i - \\bar{{X}})^2$$")
+    st.markdown(f"样本标准差 = **{S:.4f}**  \n$$S = \\sqrt{{S^2}}$$")
 
     st.write(f"自由度 df = {df}")
     st.write(f"{conf_choice} 总体均值置信区间 = **({ci_low:.4f}, {ci_high:.4f})**")
