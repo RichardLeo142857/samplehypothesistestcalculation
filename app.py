@@ -121,21 +121,23 @@ if (mean > mu0 and t_stat > t_crit_one_val) or (mean < mu0 and t_stat < t_crit_o
 else:
     st.info(f"单尾检验 ({tail_text})：样本均值落在接受域 → 没有足够证据证明均值与 μ₀ 不同")
 
-# 绘图 PDF
+# 绘图 PDF 功能2（以 mu0 为中心）
 x2 = np.linspace(mu0 - 4*S/np.sqrt(n), mu0 + 4*S/np.sqrt(n), 500)
 y2 = stats.t.pdf((x2 - mu0)/(S/np.sqrt(n)), df)/(S/np.sqrt(n))
 
 fig2, ax2 = plt.subplots(figsize=(8,5))
 ax2.plot(x2, y2, label="PDF")
+
+# 接受/拒绝域
 accept_low2 = mu0 - t_crit_two*S/np.sqrt(n)
 accept_high2 = mu0 + t_crit_two*S/np.sqrt(n)
 ax2.fill_between(x2, 0, y2, where=(x2 >= accept_low2) & (x2 <= accept_high2), color="lightgreen", alpha=0.3, label="acceptance region")
 ax2.fill_between(x2, 0, y2, where=(x2 < accept_low2) | (x2 > accept_high2), color="lightcoral", alpha=0.3, label="rejection region")
 
-# 样本均值红线和数值标注
+# 样本均值红点 + 红虚线
 y_mean2 = stats.t.pdf((mean - mu0)/(S/np.sqrt(n)), df)/(S/np.sqrt(n))
-ax2.plot([mean, mean], [0, y_mean2], color='purple', linestyle='--', label=f"Sample mean = {mean:.2f}")
-ax2.text(mean, y_mean2*1.05, f"{mean:.2f}", color='purple', ha='center')
+ax2.plot(mean, y_mean2, 'ro', label=f"Sample mean = {mean:.2f}")  # 红点
+ax2.plot([mean, mean], [0, y_mean2], color='purple', linestyle='--')    # 竖线
 
 ax2.set_xlabel("t")
 ax2.set_ylabel("Probability Density")
@@ -144,3 +146,4 @@ ax2.grid(True)
 ax2.legend()
 plt.tight_layout()
 st.pyplot(fig2)
+
