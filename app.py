@@ -113,11 +113,11 @@ else:
     if p_one < alpha2:
         # reject H0 at chosen alpha
         if tail_dir == "right":
-            st.error(f"❌ p-value = {p_one:.6f} < α = {alpha2:.2f} → 有足够证据证明实际μ > μ₀。  （样本均值 {mean2:.2f} > μ₀ = {mu0:.2f}）")
+            st.error(f"❌ p = {p_one:.6f} < α = {alpha2:.2f} → 有足够证据证明实际μ > μ₀。  （样本均值 {mean2:.2f} > μ₀ = {mu0:.2f}）")
         else:
-            st.error(f"❌ p-value = {p_one:.6f} < α = {alpha2:.2f} → 有足够证据证明实际μ < μ₀。  （样本均值 {mean2:.2f} < μ₀ = {mu0:.2f}）")
+            st.error(f"❌ p = {p_one:.6f} < α = {alpha2:.2f} → 有足够证据证明实际μ < μ₀。  （样本均值 {mean2:.2f} < μ₀ = {mu0:.2f}）")
     else:
-        st.success(f"✅ p-value = {p_one:.6f} ≥ α = {alpha2:.2f} → 没有足够证据拒绝 H₀。  （样本均值 {mean2:.2f}）")
+        st.success(f"✅ p = {p_one:.6f} ≥ α = {alpha2:.2f} → 没有足够证据拒绝 H₀。  （样本均值 {mean2:.2f}）")
 
     # --- Plot single-tail PDF centered at mu0 scale = S / sqrt(n) ---
     scale_mean = S2 / np.sqrt(n2)
