@@ -87,7 +87,7 @@ else:
     df2 = n2 - 1
 
     alpha_map2 = {"90%": 0.10, "95%": 0.05, "99%": 0.01}
-    alpha2_choice = st.selectbox("功能2 选择显著性水平 α（用于决策）:", list(alpha_map2.keys()), index=1, key="a2")
+    alpha2_choice = st.selectbox("功能2 选择显著性水平 α:", list(alpha_map2.keys()), index=1, key="a2")
     alpha2 = alpha_map2[alpha2_choice]
 
     mu0 = st.number_input("请输入总体均值 μ₀:", value=0.0, key="mu0_2")
@@ -135,9 +135,9 @@ else:
     if in_crit_region:
         # reject H0
         if tail_dir == "right":
-            st.error(f"样本均值X̄= {mean2:.2f}\\ 落在 critical region，拒绝 H₀，μ > μ₀。")
+            st.error(f"样本均值X̄= {mean2:.2f} 落在 critical region，拒绝 H₀，μ > μ₀。")
         else:
-            st.error(f"样本均值X̄ = {mean2:.2f}\\ 落在 critical region，拒绝 H₀，μ < μ₀。")
+            st.error(f"样本均值X̄ = {mean2:.2f} 落在 critical region，拒绝 H₀，μ < μ₀。")
     else:
         # accept H0 — exact sentence per request
         st.success("接受H₀，没有足够证据断定 μ 与 μ₀ 不同。")
