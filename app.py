@@ -42,7 +42,7 @@ else:
         acc_high1 = mean1 + tcrit1 * S1 * np.sqrt(1 + 1/n1)
         t_pred1 = (pred_val - mean1) / (S1 * np.sqrt(1 + 1/n1))
 
-        st.write(f"样本量 n = {n1}, 样本均值 = {mean1:.4f}, S = {S1:.4f}")
+        st.write(f"样本量 n = {n1}, 样本均值X̄ = {mean1:.4f}, 样本标准差S = {S1:.4f}")
         st.markdown(f"Acceptance region ({conf1_choice}) = ({acc_low1:.4f}, {acc_high1:.4f})")
         st.markdown("公式：$$t=\\frac{X_{pred}-\\bar X}{S\\sqrt{1+1/n}}$$")
         st.markdown(f"计算：t = ({pred_val} - {mean1:.4f}) / ({S1:.4f}*sqrt(1+1/{n1})) = {t_pred1:.4f}")
@@ -92,7 +92,7 @@ else:
 
     mu0 = st.number_input("请输入总体均值 μ₀:", value=0.0, key="mu0_2")
 
-    st.write(f"样本量 n = {n2}, 样本均值 = {mean2:.4f}, S = {S2:.4f}, df = {df2}")
+    st.write(f"样本量 n = {n2}, 样本均值X̄ = {mean2:.4f}, 样本标准差S = {S2:.4f}, 自由度df = {df2}")
 
     # t statistic
     t_stat = (mean2 - mu0) / (S2 / np.sqrt(n2))
