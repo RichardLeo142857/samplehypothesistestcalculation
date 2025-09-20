@@ -164,7 +164,7 @@ else:
     ax.fill_between(x, 0, y, where=accept_cond, color="lightgreen", alpha=0.3, label="acceptance region")
     ax.fill_between(x, 0, y, where=crit_cond, color="lightcoral", alpha=0.25, label="critical region")
     ax.axvline(mu0, color="black", linestyle="--", linewidth=1, label=f"μ₀ = {mu0:.2f}")
-    ax.axvline(mu_crit_chosen, color="orange", linestyle="--", linewidth=1, label=f"μ_crit (α={alpha2:.2f}) = {mu_crit_chosen:.2f}")
+    ax.axvline(mu_crit_chosen, color="orange", linestyle="--", linewidth=1, label=f"critical value(α={alpha2:.2f})={mu_crit_chosen:.2f}")
     y_mean_on_scale = stats.t.pdf((mean2 - mu0) / scale_mean, df2) / scale_mean
     ax.plot(mean2, y_mean_on_scale, 'ro', label=f"Sample mean = {mean2:.2f}")
     ax.set_xlabel("Value")
