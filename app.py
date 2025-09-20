@@ -15,7 +15,7 @@ def parse_data(text):
         return None
 
 # ---------------------------
-# Feature 1: Prediction (acceptance) interval (separate input)
+# Feature 1: Prediction (acceptance) interval
 st.subheader("功能 1：预测值检验")
 data1_text = st.text_area("功能1 样本数据（逗号或空格分隔）：", "82, 85, 90, 87, 88, 91, 84", key="data1")
 data1 = parse_data(data1_text)
@@ -74,7 +74,7 @@ else:
         st.pyplot(fig1)
 
 # ---------------------------
-# Feature 2: Single-tail only, p expressed as P(X̄ >=/<= observed)
+# Feature 2: Single-tail only, concise probability display and conclusion
 st.subheader("功能 2：样本均值假设检验")
 data2_text = st.text_area("功能2 样本数据（逗号或空格分隔）：", "80, 82, 85, 87, 88", key="data2")
 data2 = parse_data(data2_text)
@@ -98,18 +98,17 @@ else:
     t_stat = (mean2 - mu0) / (S2 / np.sqrt(n2))
     st.write(f"t 统计量 = {t_stat:.4f}")
 
-    # determine tail direction and one-sided probability (probability expressed for X̄)
+    # determine tail direction and one-sided probability (probability expressed with the numeric sample mean)
     if mean2 > mu0:
         tail_dir = "right"
-        # one-sided p = P(T >= t_stat)
         p_one = 1 - stats.t.cdf(t_stat, df2)
-        prob_label = r"$P(\bar{X} \ge \bar{X}_{\mathrm{obs}})$"
+        prob_label = f"$P(\\bar{{X}} \\ge {mean2:.4f})$"
     else:
         tail_dir = "left"
         p_one = stats.t.cdf(t_stat, df2)
-        prob_label = r"$P(\bar{X} \le \bar{X}_{\mathrm{obs}})$"
+        prob_label = f"$P(\\bar{{X}} \\le {mean2:.4f})$"
 
-    # format p for display
+    # format p display
     def fmt_p(p):
         if p < 1e-6:
             return "<1e-6"
@@ -119,11 +118,11 @@ else:
 
     p_display = fmt_p(p_one)
 
-    # show the probability and a concise decision sentence as you requested:
-    # show P(...) = value, then compare to alpha, then say acceptance/critical interval, then decision and mu relation
-    comp = "<" if (p_one < alpha2) else ">="
+    # concise output: probability, compare to alpha, then region and short conclusion
+    comp_symbol = "<" if (p_one < alpha2) else ">="
+    st.markdown(f"**{prob_label} = {p_display}**；比较 α = {alpha2:.3f} → {comp_symbol} α")
 
-    # determine whether in critical region (based on mu_crit)
+    # compute mu critical boundary for chosen alpha (used for region decision and plotting)
     tcrit_chosen = stats.t.ppf(1 - alpha2, df2)
     if tail_dir == "right":
         mu_crit_chosen = mu0 + tcrit_chosen * S2 / np.sqrt(n2)
@@ -132,29 +131,19 @@ else:
         mu_crit_chosen = mu0 - tcrit_chosen * S2 / np.sqrt(n2)
         in_crit_region = mean2 < mu_crit_chosen
 
-    # concise output line per your format
-    if tail_dir == "right":
-        st.markdown(f"**{prob_label} = {p_display}**; compare to α = {alpha2:.3f} → {'<' if p_one < alpha2 else '>='} α")
-    else:
-        st.markdown(f"**{prob_label} = {p_display}**; compare to α = {alpha2:.3f} → {'<' if p_one < alpha2 else '>='} α")
-
-    # state acceptance/critical and final short conclusion about μ
+    # concise region + conclusion; acceptance message exactly as requested
     if in_crit_region:
         # reject H0
-        region_word = "critical region"
         if tail_dir == "right":
-            conclusion_mu = "μ > μ₀"
-            st.error(f"样本均值 \\(\\bar{{X}} = {mean2:.2f}\\) 落在 {region_word}（\\(\\bar{{X}} > {mu_crit_chosen:.4f}\\)），因此拒绝 H₀，结论：{conclusion_mu}。")
+            st.error(f"样本均值 \\(\\bar{{X}} = {mean2:.2f}\\) 落在 critical region（μ_crit = {mu_crit_chosen:.4f}），因此拒绝 H₀，结论：μ > μ₀。")
         else:
-            conclusion_mu = "μ < μ₀"
-            st.error(f"样本均值 \\(\\bar{{X}} = {mean2:.2f}\\) 落在 {region_word}（\\(\\bar{{X}} < {mu_crit_chosen:.4f}\\)），因此拒绝 H₀，结论：{conclusion_mu}。")
+            st.error(f"样本均值 \\(\\bar{{X}} = {mean2:.2f}\\) 落在 critical region（μ_crit = {mu_crit_chosen:.4f}），因此拒绝 H₀，结论：μ < μ₀。")
     else:
-        # accept H0 (fail to reject)
-        region_word = "acceptance region"
-        st.success(f"样本均值 \\(\\bar{{X}} = {mean2:.2f}\\) 落在 {region_word}，因此没有足够证据拒绝 H₀；无法断定 μ 与 μ₀ 不同（μ 可能等于 μ₀）。")
+        # accept H0 — exact sentence per request
+        st.success("接受H₀，没有足够证据断定 μ 与 μ₀ 不同。")
 
     # show numeric mu_crit for clarity
-    st.markdown(f"临界边界（基于 α = {alpha2:.3f}）: μ_crit = {mu_crit_chosen:.4f}")
+    st.markdown(f"临界边界: μ_crit = {mu_crit_chosen:.4f}")
 
     # Plot single-tail PDF centered at mu0 with scale = S / sqrt(n)
     scale_mean = S2 / np.sqrt(n2)
@@ -172,8 +161,8 @@ else:
 
     fig, ax = plt.subplots(figsize=(8,4))
     ax.plot(x, y, label="PDF")
-    ax.fill_between(x, 0, y, where=accept_cond, color="lightgreen", alpha=0.3, label="acceptance region (based on chosen α)")
-    ax.fill_between(x, 0, y, where=crit_cond, color="lightcoral", alpha=0.25, label="critical region (based on chosen α)")
+    ax.fill_between(x, 0, y, where=accept_cond, color="lightgreen", alpha=0.3, label="acceptance region")
+    ax.fill_between(x, 0, y, where=crit_cond, color="lightcoral", alpha=0.25, label="critical region")
     ax.axvline(mu0, color="black", linestyle="--", linewidth=1, label=f"μ₀ = {mu0:.2f}")
     ax.axvline(mu_crit_chosen, color="orange", linestyle="--", linewidth=1, label=f"μ_crit (α={alpha2:.2f}) = {mu_crit_chosen:.2f}")
     y_mean_on_scale = stats.t.pdf((mean2 - mu0) / scale_mean, df2) / scale_mean
