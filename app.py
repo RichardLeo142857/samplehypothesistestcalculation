@@ -71,7 +71,7 @@ else:
         st.pyplot(fig1)
 
 # ---------------------------
-# FUNCTION 2: Single-tail only, show critical values table (multiple alpha) and use p-value for conclusion
+# FUNCTION 2: Single-tail only, use p-value for conclusion (no table)
 st.subheader("功能 2：样本均值假设检验（仅单尾）")
 
 data2_text = st.text_area("功能2 样本数据（逗号或空格分隔）：", "80, 82, 85, 87, 88", key="data2")
@@ -84,7 +84,6 @@ else:
     S2 = np.std(data2, ddof=1)
     df2 = n2 - 1
 
-    # user chooses alpha for decision (but we will also display a table of common alphas' critical values)
     alpha_map2 = {"90%": 0.10, "95%": 0.05, "99%": 0.01}
     alpha2_choice = st.selectbox("功能2 选择显著性水平 α（用于决策）:", list(alpha_map2.keys()), index=1, key="a2")
     alpha2 = alpha_map2[alpha2_choice]
@@ -97,7 +96,62 @@ else:
     t_stat = (mean2 - mu0) / (S2 / np.sqrt(n2))
     st.write(f"t 统计量 = {t_stat:.4f}")
 
-    # determine tail direction automatically
+    # determine tail direction automatically and compute one-sided p-value
     if mean2 > mu0:
         tail_dir = "right"   # H1: mu > mu0
-        Htext = "H₀: μ = μ₀   |   H₁: μ
+        Htext = "H₀: μ = μ₀   |   H₁: μ > μ₀ (right-tailed)"
+        p_one = 1 - stats.t.cdf(t_stat, df2)
+    else:
+        tail_dir = "left"    # H1: mu < mu0
+        Htext = "H₀: μ = μ₀   |   H₁: μ < μ₀ (left-tailed)"
+        p_one = stats.t.cdf(t_stat, df2)
+
+    st.markdown(Htext)
+    st.write(f"one-sided p-value = {p_one:.6f}")
+
+    # Decision based on p-value and chosen alpha2 (NOT by comparing t vs critical)
+    if p_one < alpha2:
+        # reject H0 at chosen alpha
+        if tail_dir == "right":
+            st.error(f"❌ p-value = {p_one:.6f} < α = {alpha2:.2f} → 有足够证据证明 μ > μ₀。  （样本均值 {mean2:.2f} > μ₀ = {mu0:.2f}）")
+        else:
+            st.error(f"❌ p-value = {p_one:.6f} < α = {alpha2:.2f} → 有足够证据证明 μ < μ₀。  （样本均值 {mean2:.2f} < μ₀ = {mu0:.2f}）")
+    else:
+        st.success(f"✅ p-value = {p_one:.6f} ≥ α = {alpha2:.2f} → 没有足够证据拒绝 H₀。  （样本均值 {mean2:.2f}）")
+
+    # --- Plot single-tail PDF centered at mu0 scale = S / sqrt(n) ---
+    scale_mean = S2 / np.sqrt(n2)
+    x_min = mu0 - 4 * scale_mean
+    x_max = mu0 + 4 * scale_mean
+    x = np.linspace(x_min, x_max, 600)
+    y = stats.t.pdf((x - mu0) / scale_mean, df2) / scale_mean
+
+    # compute the mu critical boundary for chosen alpha2
+    tcrit_chosen = stats.t.ppf(1 - alpha2, df2)
+    if tail_dir == "right":
+        mu_crit_chosen = mu0 + tcrit_chosen * S2 / np.sqrt(n2)
+        accept_cond = (x >= mu0) & (x <= mu_crit_chosen)
+        crit_cond = x > mu_crit_chosen
+    else:
+        mu_crit_chosen = mu0 - tcrit_chosen * S2 / np.sqrt(n2)
+        accept_cond = (x >= mu_crit_chosen) & (x <= mu0)
+        crit_cond = x < mu_crit_chosen
+
+    fig, ax = plt.subplots(figsize=(8,4))
+    ax.plot(x, y, label="PDF")
+    # acceptance region (green)
+    ax.fill_between(x, 0, y, where=accept_cond, color="lightgreen", alpha=0.3, label="acceptance region (based on chosen α)")
+    # critical region (red)
+    ax.fill_between(x, 0, y, where=crit_cond, color="lightcoral", alpha=0.25, label="critical region (based on chosen α)")
+    # mark mu0, mu_critical and sample mean
+    ax.axvline(mu0, color="black", linestyle="--", linewidth=1, label=f"μ₀ = {mu0:.2f}")
+    ax.axvline(mu_crit_chosen, color="orange", linestyle="--", linewidth=1, label=f"μ_crit (α={alpha2:.2f}) = {mu_crit_chosen:.2f}")
+    y_mean_on_scale = stats.t.pdf((mean2 - mu0) / scale_mean, df2) / scale_mean
+    ax.plot(mean2, y_mean_on_scale, 'ro', label=f"Sample mean = {mean2:.2f}")
+    ax.set_xlabel("Value")
+    ax.set_ylabel("Probability Density")
+    ax.set_title("PDF")
+    ax.grid(True)
+    ax.legend()
+    plt.tight_layout()
+    st.pyplot(fig)
