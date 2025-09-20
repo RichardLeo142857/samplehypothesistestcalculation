@@ -16,7 +16,7 @@ def parse_data(text):
 
 # ---------------------------
 # Minimal Feature 1 (kept simple here)
-st.subheader("功能 1：预测值检验（独立输入）")
+st.subheader("功能 1：预测值检验")
 data1_text = st.text_area("功能1 样本数据（逗号或空格分隔）：", "82, 85, 90, 87, 88, 91, 84", key="data1")
 data1 = parse_data(data1_text)
 if data1 is None or len(data1) < 2:
@@ -45,9 +45,9 @@ else:
         st.markdown(f"计算：t = ({pred_val} - {mean1:.4f}) / ({S1:.4f}*sqrt(1+1/{n1})) = {t_pred1:.4f}")
 
         if pred_low1 <= pred_val <= pred_high1:
-            st.success(f"✅ 预测值 {pred_val} 落在 prediction interval → 预测值合理")
+            st.success(f"✅ 预测值 {pred_val} 落在 acceptance region 预测值合理")
         else:
-            st.error(f"❌ 预测值 {pred_val} 落在 critical region → 预测值不合理")
+            st.error(f"❌ 预测值 {pred_val} 落在 critical region 预测值不合理")
 
         # plot
         x_min1 = mean1 - 4 * S1 * np.sqrt(1 + 1/n1)
@@ -85,7 +85,7 @@ else:
     df2 = n2 - 1
 
     alpha_map2 = {"90%": 0.10, "95%": 0.05, "99%": 0.01}
-    alpha2_choice = st.selectbox("功能2 选择显著性水平 α（用于决策）:", list(alpha_map2.keys()), index=1, key="a2")
+    alpha2_choice = st.selectbox("功能2 选择显著性水平 α:", list(alpha_map2.keys()), index=1, key="a2")
     alpha2 = alpha_map2[alpha2_choice]
 
     mu0 = st.number_input("请输入总体均值 μ₀:", value=0.0, key="mu0_2")
@@ -113,9 +113,9 @@ else:
     if p_one < alpha2:
         # reject H0 at chosen alpha
         if tail_dir == "right":
-            st.error(f"❌ p-value = {p_one:.6f} < α = {alpha2:.2f} → 有足够证据证明 μ > μ₀。  （样本均值 {mean2:.2f} > μ₀ = {mu0:.2f}）")
+            st.error(f"❌ p-value = {p_one:.6f} < α = {alpha2:.2f} → 有足够证据证明实际μ > μ₀。  （样本均值 {mean2:.2f} > μ₀ = {mu0:.2f}）")
         else:
-            st.error(f"❌ p-value = {p_one:.6f} < α = {alpha2:.2f} → 有足够证据证明 μ < μ₀。  （样本均值 {mean2:.2f} < μ₀ = {mu0:.2f}）")
+            st.error(f"❌ p-value = {p_one:.6f} < α = {alpha2:.2f} → 有足够证据证明实际μ < μ₀。  （样本均值 {mean2:.2f} < μ₀ = {mu0:.2f}）")
     else:
         st.success(f"✅ p-value = {p_one:.6f} ≥ α = {alpha2:.2f} → 没有足够证据拒绝 H₀。  （样本均值 {mean2:.2f}）")
 
@@ -140,9 +140,9 @@ else:
     fig, ax = plt.subplots(figsize=(8,4))
     ax.plot(x, y, label="PDF")
     # acceptance region (green)
-    ax.fill_between(x, 0, y, where=accept_cond, color="lightgreen", alpha=0.3, label="acceptance region (based on chosen α)")
+    ax.fill_between(x, 0, y, where=accept_cond, color="lightgreen", alpha=0.3, label="acceptance region")
     # critical region (red)
-    ax.fill_between(x, 0, y, where=crit_cond, color="lightcoral", alpha=0.25, label="critical region (based on chosen α)")
+    ax.fill_between(x, 0, y, where=crit_cond, color="lightcoral", alpha=0.25, label="critical region")
     # mark mu0, mu_critical and sample mean
     ax.axvline(mu0, color="black", linestyle="--", linewidth=1, label=f"μ₀ = {mu0:.2f}")
     ax.axvline(mu_crit_chosen, color="orange", linestyle="--", linewidth=1, label=f"μ_crit (α={alpha2:.2f}) = {mu_crit_chosen:.2f}")
