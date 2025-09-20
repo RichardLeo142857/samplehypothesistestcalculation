@@ -70,54 +70,67 @@ else:
         plt.tight_layout()
         st.pyplot(fig1)
 
-# ---------------------------
-# FUNCTION 2: Single-tail only, use p-value for conclusion (no table)
-st.subheader("功能 2：样本均值假设检验（仅单尾）")
+# ---------- Replace FUNCTION 2 decision/display with this block ----------
+# assume n2, mean2, S2, df2, alpha2, mu0 already computed above
 
-data2_text = st.text_area("功能2 样本数据（逗号或空格分隔）：", "80, 82, 85, 87, 88", key="data2")
-data2 = parse_data(data2_text)
-if data2 is None or len(data2) < 2:
-    st.error("❌ 功能2 数据解析错误或样本太少（≥2）")
+# t statistic
+t_stat = (mean2 - mu0) / (S2 / np.sqrt(n2))
+
+# determine tail direction automatically and compute one-sided p-value
+if mean2 > mu0:
+    tail_dir = "right"   # H1: mu > mu0
+    Htext = "H₀: μ = μ₀   |   H₁: μ > μ₀ (right-tailed)"
+    # one-sided p-value (right) = P(T >= t_stat) under t_df
+    p_one = 1 - stats.t.cdf(t_stat, df2)
+    # probability expressed as P(X̄ ≥ X̄_obs)
+    prob_label = r"$P(\bar{X} \ge \bar{X}_{\mathrm{obs}})$"
 else:
-    n2 = len(data2)
-    mean2 = np.mean(data2)
-    S2 = np.std(data2, ddof=1)
-    df2 = n2 - 1
+    tail_dir = "left"    # H1: mu < mu0
+    Htext = "H₀: μ = μ₀   |   H₁: μ < μ₀ (left-tailed)"
+    p_one = stats.t.cdf(t_stat, df2)
+    prob_label = r"$P(\bar{X} \le \bar{X}_{\mathrm{obs}})$"
 
-    alpha_map2 = {"90%": 0.10, "95%": 0.05, "99%": 0.01}
-    alpha2_choice = st.selectbox("功能2 选择显著性水平 α:", list(alpha_map2.keys()), index=1, key="a2")
-    alpha2 = alpha_map2[alpha2_choice]
+st.markdown(Htext)
 
-    mu0 = st.number_input("请输入总体均值 μ₀:", value=0.0, key="mu0_2")
+# Format p for display (use thresholds for very small values)
+def fmt_p(p):
+    if p < 1e-6:
+        return "<1e-6"
+    if p < 1e-3:
+        return f"<0.001"
+    return f"{p:.6f}"
 
-    st.write(f"样本量 n = {n2}, 样本均值 = {mean2:.4f}, S = {S2:.4f}, df = {df2}")
+p_display = fmt_p(p_one)
 
-    # t statistic
-    t_stat = (mean2 - mu0) / (S2 / np.sqrt(n2))
-    st.write(f"t 统计量 = {t_stat:.4f}")
+# Show the probability in the desired form (LaTeX)
+st.markdown(f"**{prob_label} = {p_display}**  （在 H₀ 下计算）")
 
-    # determine tail direction automatically and compute one-sided p-value
-    if mean2 > mu0:
-        tail_dir = "right"   # H1: mu > mu0
-        Htext = "H₀: μ = μ₀   |   H₁: μ > μ₀ (right-tailed)"
-        p_one = 1 - stats.t.cdf(t_stat, df2)
+# Also show the numeric t statistic and chosen alpha (but avoid the 'p-value < alpha then reject' phrasing)
+st.write(f"t 统计量 = {t_stat:.4f}， 选择的显著性水平 α = {alpha2:.3f}")
+
+# Compute mu critical boundary for chosen alpha (for plotting and 'critical region' statement)
+tcrit_chosen = stats.t.ppf(1 - alpha2, df2)
+if tail_dir == "right":
+    mu_crit_chosen = mu0 + tcrit_chosen * S2 / np.sqrt(n2)
+    in_crit_region = mean2 > mu_crit_chosen  # equivalent to p_one < alpha2
+else:
+    mu_crit_chosen = mu0 - tcrit_chosen * S2 / np.sqrt(n2)
+    in_crit_region = mean2 < mu_crit_chosen
+
+# Natural-language conclusion using 'critical region' wording, and show numeric comparison
+if in_crit_region:
+    if tail_dir == "right":
+        st.error(f"样本均值 \\(\\bar{{X}} = {mean2:.2f}\\) 落在临界区 (critical region)，即 \\(\\bar{{X}} > {mu_crit_chosen:.4f}\\)。"
+                 f" 这意味着在显著性水平 α = {alpha2:.3f} 下，有足够证据证明 μ > μ₀（这里 p = {p_display}）。")
     else:
-        tail_dir = "left"    # H1: mu < mu0
-        Htext = "H₀: μ = μ₀   |   H₁: μ < μ₀ (left-tailed)"
-        p_one = stats.t.cdf(t_stat, df2)
+        st.error(f"样本均值 \\(\\bar{{X}} = {mean2:.2f}\\) 落在临界区 (critical region)，即 \\(\\bar{{X}} < {mu_crit_chosen:.4f}\\)。"
+                 f" 这意味着在显著性水平 α = {alpha2:.3f} 下，有足够证据证明 μ < μ₀（这里 p = {p_display}）。")
+else:
+    st.success(f"样本均值 \\(\\bar{{X}} = {mean2:.2f}\\) 落在接受域 (acceptance region)，即不落在所定义的临界区（critical region）。"
+               f" 这意味着在显著性水平 α = {alpha2:.3f} 下，没有足够证据拒绝 H₀（这里 p = {p_display}）。")
 
-    st.markdown(Htext)
-    st.write(f"one-sided p-value = {p_one:.6f}")
-
-    # Decision based on p-value and chosen alpha2 (NOT by comparing t vs critical)
-    if p_one < alpha2:
-        # reject H0 at chosen alpha
-        if tail_dir == "right":
-            st.error(f"❌ p = {p_one:.6f} < α = {alpha2:.2f} → 有足够证据证明实际μ > μ₀。  （样本均值 {mean2:.2f} > μ₀ = {mu0:.2f}）")
-        else:
-            st.error(f"❌ p = {p_one:.6f} < α = {alpha2:.2f} → 有足够证据证明实际μ < μ₀。  （样本均值 {mean2:.2f} < μ₀ = {mu0:.2f}）")
-    else:
-        st.success(f"✅ p = {p_one:.6f} ≥ α = {alpha2:.2f} → 没有足够证据拒绝 H₀。  （样本均值 {mean2:.2f}）")
+# (optional) show the mu_crit_chosen numeric for clarity
+st.markdown(f"临界边界（基于 α = {alpha2:.3f}）: μ_crit = {mu_crit_chosen:.4f}")
 
     # --- Plot single-tail PDF centered at mu0 scale = S / sqrt(n) ---
     scale_mean = S2 / np.sqrt(n2)
