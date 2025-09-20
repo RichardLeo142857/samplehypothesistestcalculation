@@ -135,15 +135,15 @@ else:
     if in_crit_region:
         # reject H0
         if tail_dir == "right":
-            st.error(f"样本均值X̄= {mean2:.2f}\\) 落在 critical region（critical value = {mu_crit_chosen:.4f}），拒绝 H₀，μ > μ₀。")
+            st.error(f"样本均值X̄= {mean2:.2f}\\) 落在 critical region，拒绝 H₀，μ > μ₀。")
         else:
-            st.error(f"样本均值X̄ = {mean2:.2f}\\) 落在 critical region（critical value = {mu_crit_chosen:.4f}），拒绝 H₀，μ < μ₀。")
+            st.error(f"样本均值X̄ = {mean2:.2f}\\) 落在 critical region，拒绝 H₀，μ < μ₀。")
     else:
         # accept H0 — exact sentence per request
         st.success("接受H₀，没有足够证据断定 μ 与 μ₀ 不同。")
 
     # show numeric mu_crit for clarity
-    st.markdown(f"临界边界: μ_crit = {mu_crit_chosen:.4f}")
+    st.markdown(f"critical value={mu_crit_chosen:.4f}")
 
     # Plot single-tail PDF centered at mu0 with scale = S / sqrt(n)
     scale_mean = S2 / np.sqrt(n2)
