@@ -15,8 +15,8 @@ def parse_data(text):
         return None
 
 # ---------------------------
-# Feature 1: Prediction interval (separate input)
-st.subheader("功能 1：预测值检验（独立输入）")
+# Feature 1: Prediction (acceptance) interval (separate input)
+st.subheader("功能 1：预测值检验")
 data1_text = st.text_area("功能1 样本数据（逗号或空格分隔）：", "82, 85, 90, 87, 88, 91, 84", key="data1")
 data1 = parse_data(data1_text)
 if data1 is None or len(data1) < 2:
@@ -28,7 +28,7 @@ else:
     df1 = n1 - 1
 
     alpha_map = {"90%": 0.10, "95%": 0.05, "99%": 0.01}
-    conf1_choice = st.selectbox("功能1 选择 prediction-significance α：", list(alpha_map.keys()), index=1, key="a1")
+    conf1_choice = st.selectbox("功能1 选择 significance α：", list(alpha_map.keys()), index=1, key="a1")
     alpha1 = alpha_map[conf1_choice]
 
     pred_val = st.number_input("Your prediction (功能1):", value=95.0, key="pred1")
@@ -37,21 +37,22 @@ else:
         st.error("❌ 功能1 样本标准差为0，无法计算")
     else:
         tcrit1 = stats.t.ppf(1 - alpha1/2, df1)
-        pred_low1 = mean1 - tcrit1 * S1 * np.sqrt(1 + 1/n1)
-        pred_high1 = mean1 + tcrit1 * S1 * np.sqrt(1 + 1/n1)
+        # acceptance interval for prediction (formerly prediction interval)
+        acc_low1 = mean1 - tcrit1 * S1 * np.sqrt(1 + 1/n1)
+        acc_high1 = mean1 + tcrit1 * S1 * np.sqrt(1 + 1/n1)
         t_pred1 = (pred_val - mean1) / (S1 * np.sqrt(1 + 1/n1))
 
         st.write(f"样本量 n = {n1}, 样本均值 = {mean1:.4f}, S = {S1:.4f}")
-        st.markdown(f"Prediction interval ({conf1_choice}) = ({pred_low1:.4f}, {pred_high1:.4f})")
+        st.markdown(f"Acceptance interval ({conf1_choice}) = ({acc_low1:.4f}, {acc_high1:.4f})")
         st.markdown("公式：$$t=\\frac{X_{pred}-\\bar X}{S\\sqrt{1+1/n}}$$")
         st.markdown(f"计算：t = ({pred_val} - {mean1:.4f}) / ({S1:.4f}*sqrt(1+1/{n1})) = {t_pred1:.4f}")
 
-        if pred_low1 <= pred_val <= pred_high1:
-            st.success(f"✅ 预测值 {pred_val} 落在 prediction interval → 预测值合理")
+        if acc_low1 <= pred_val <= acc_high1:
+            st.success(f"✅ 预测值 {pred_val} 落在 acceptance interval → 预测值合理")
         else:
             st.error(f"❌ 预测值 {pred_val} 落在 critical region → 预测值不合理")
 
-        # plotting for function1
+        # plotting for function1 (acceptance interval / critical region)
         x_min1 = mean1 - 4 * S1 * np.sqrt(1 + 1/n1)
         x_max1 = mean1 + 4 * S1 * np.sqrt(1 + 1/n1)
         x1 = np.linspace(x_min1, x_max1, 500)
@@ -60,8 +61,8 @@ else:
 
         fig1, ax1 = plt.subplots(figsize=(8,4))
         ax1.plot(x1, y1, label="PDF")
-        ax1.fill_between(x1, 0, y1, where=(x1 >= pred_low1) & (x1 <= pred_high1), color="lightgreen", alpha=0.3, label="prediction interval")
-        ax1.fill_between(x1, 0, y1, where=(x1 < pred_low1) | (x1 > pred_high1), color="lightcoral", alpha=0.15, label="critical region")
+        ax1.fill_between(x1, 0, y1, where=(x1 >= acc_low1) & (x1 <= acc_high1), color="lightgreen", alpha=0.3, label="acceptance interval")
+        ax1.fill_between(x1, 0, y1, where=(x1 < acc_low1) | (x1 > acc_high1), color="lightcoral", alpha=0.15, label="critical region")
         ypredpt = stats.t.pdf((pred_val - mean1) / scale_pred, df1) / scale_pred
         ax1.plot(pred_val, ypredpt, 'ro', label=f"Your prediction = {pred_val:.2f}")
         ax1.set_xlabel("Value")
@@ -73,8 +74,8 @@ else:
         st.pyplot(fig1)
 
 # ---------------------------
-# Feature 2: Single-tail hypothesis test (separate input), p as P(Xbar >=/<= Xbar_obs)
-st.subheader("功能 2：样本均值假设检验（仅单尾）")
+# Feature 2: Single-tail only, p expressed as P(X̄ >=/<= observed)
+st.subheader("功能 2：样本均值假设检验")
 data2_text = st.text_area("功能2 样本数据（逗号或空格分隔）：", "80, 82, 85, 87, 88", key="data2")
 data2 = parse_data(data2_text)
 if data2 is None or len(data2) < 2:
@@ -97,21 +98,18 @@ else:
     t_stat = (mean2 - mu0) / (S2 / np.sqrt(n2))
     st.write(f"t 统计量 = {t_stat:.4f}")
 
-    # determine tail direction and one-sided probability
+    # determine tail direction and one-sided probability (probability expressed for X̄)
     if mean2 > mu0:
         tail_dir = "right"
-        Htext = "H0: μ = μ0   |   H1: μ > μ0 (right-tailed)"
+        # one-sided p = P(T >= t_stat)
         p_one = 1 - stats.t.cdf(t_stat, df2)
         prob_label = r"$P(\bar{X} \ge \bar{X}_{\mathrm{obs}})$"
     else:
         tail_dir = "left"
-        Htext = "H0: μ = μ0   |   H1: μ < μ0 (left-tailed)"
         p_one = stats.t.cdf(t_stat, df2)
         prob_label = r"$P(\bar{X} \le \bar{X}_{\mathrm{obs}})$"
 
-    st.markdown(Htext)
-
-    # formatting p display
+    # format p for display
     def fmt_p(p):
         if p < 1e-6:
             return "<1e-6"
@@ -120,10 +118,12 @@ else:
         return f"{p:.6f}"
 
     p_display = fmt_p(p_one)
-    st.markdown(f"**{prob_label} = {p_display}** （在 H0 下计算）")
-    st.write(f"选择的显著性水平 α = {alpha2:.3f}")
 
-    # compute mu critical boundary for chosen alpha (used for critical region statement and plotting)
+    # show the probability and a concise decision sentence as you requested:
+    # show P(...) = value, then compare to alpha, then say acceptance/critical interval, then decision and mu relation
+    comp = "<" if (p_one < alpha2) else ">="
+
+    # determine whether in critical region (based on mu_crit)
     tcrit_chosen = stats.t.ppf(1 - alpha2, df2)
     if tail_dir == "right":
         mu_crit_chosen = mu0 + tcrit_chosen * S2 / np.sqrt(n2)
@@ -132,27 +132,31 @@ else:
         mu_crit_chosen = mu0 - tcrit_chosen * S2 / np.sqrt(n2)
         in_crit_region = mean2 < mu_crit_chosen
 
-    # Natural-language conclusion using 'critical region' wording + numeric comparisons
-    if in_crit_region:
-        if tail_dir == "right":
-            st.error(
-                f"样本均值 \\(\\bar{{X}} = {mean2:.2f}\\) 落在临界区 (critical region)，即 \\(\\bar{{X}} > {mu_crit_chosen:.4f}\\)。"
-                f" 这意味着在显著性水平 α = {alpha2:.3f} 下，有足够证据证明 μ > μ₀（这里 {prob_label} = {p_display}）。"
-            )
-        else:
-            st.error(
-                f"样本均值 \\(\\bar{{X}} = {mean2:.2f}\\) 落在临界区 (critical region)，即 \\(\\bar{{X}} < {mu_crit_chosen:.4f}\\)。"
-                f" 这意味着在显著性水平 α = {alpha2:.3f} 下，有足够证据证明 μ < μ₀（这里 {prob_label} = {p_display}）。"
-            )
+    # concise output line per your format
+    if tail_dir == "right":
+        st.markdown(f"**{prob_label} = {p_display}**; compare to α = {alpha2:.3f} → {'<' if p_one < alpha2 else '>='} α")
     else:
-        st.success(
-            f"样本均值 \\(\\bar{{X}} = {mean2:.2f}\\) 落在接受域 (acceptance region)，即不在临界区 (critical region)。"
-            f" 这意味着在显著性水平 α = {alpha2:.3f} 下，没有足够证据拒绝 H0（这里 {prob_label} = {p_display}）。"
-        )
+        st.markdown(f"**{prob_label} = {p_display}**; compare to α = {alpha2:.3f} → {'<' if p_one < alpha2 else '>='} α")
 
+    # state acceptance/critical and final short conclusion about μ
+    if in_crit_region:
+        # reject H0
+        region_word = "critical region"
+        if tail_dir == "right":
+            conclusion_mu = "μ > μ₀"
+            st.error(f"样本均值 \\(\\bar{{X}} = {mean2:.2f}\\) 落在 {region_word}（\\(\\bar{{X}} > {mu_crit_chosen:.4f}\\)），因此拒绝 H₀，结论：{conclusion_mu}。")
+        else:
+            conclusion_mu = "μ < μ₀"
+            st.error(f"样本均值 \\(\\bar{{X}} = {mean2:.2f}\\) 落在 {region_word}（\\(\\bar{{X}} < {mu_crit_chosen:.4f}\\)），因此拒绝 H₀，结论：{conclusion_mu}。")
+    else:
+        # accept H0 (fail to reject)
+        region_word = "acceptance region"
+        st.success(f"样本均值 \\(\\bar{{X}} = {mean2:.2f}\\) 落在 {region_word}，因此没有足够证据拒绝 H₀；无法断定 μ 与 μ₀ 不同（μ 可能等于 μ₀）。")
+
+    # show numeric mu_crit for clarity
     st.markdown(f"临界边界（基于 α = {alpha2:.3f}）: μ_crit = {mu_crit_chosen:.4f}")
 
-    # Plot single-tail PDF centered at mu0 with scale S/sqrt(n)
+    # Plot single-tail PDF centered at mu0 with scale = S / sqrt(n)
     scale_mean = S2 / np.sqrt(n2)
     x_min = mu0 - 4 * scale_mean
     x_max = mu0 + 4 * scale_mean
