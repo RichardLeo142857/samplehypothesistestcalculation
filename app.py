@@ -43,14 +43,14 @@ else:
         t_pred1 = (pred_val - mean1) / (S1 * np.sqrt(1 + 1/n1))
 
         st.write(f"样本量 n = {n1}, 样本均值 = {mean1:.4f}, S = {S1:.4f}")
-        st.markdown(f"Acceptance interval ({conf1_choice}) = ({acc_low1:.4f}, {acc_high1:.4f})")
+        st.markdown(f"Acceptance region ({conf1_choice}) = ({acc_low1:.4f}, {acc_high1:.4f})")
         st.markdown("公式：$$t=\\frac{X_{pred}-\\bar X}{S\\sqrt{1+1/n}}$$")
         st.markdown(f"计算：t = ({pred_val} - {mean1:.4f}) / ({S1:.4f}*sqrt(1+1/{n1})) = {t_pred1:.4f}")
 
         if acc_low1 <= pred_val <= acc_high1:
-            st.success(f"✅ 预测值 {pred_val} 落在 acceptance interval → 预测值合理")
+            st.success(f"✅ 预测值 {pred_val} 落在 acceptance region 预测值合理")
         else:
-            st.error(f"❌ 预测值 {pred_val} 落在 critical region → 预测值不合理")
+            st.error(f"❌ 预测值 {pred_val} 落在 critical region 预测值不合理")
 
         # plotting for function1 (acceptance interval / critical region)
         x_min1 = mean1 - 4 * S1 * np.sqrt(1 + 1/n1)
@@ -135,9 +135,9 @@ else:
     if in_crit_region:
         # reject H0
         if tail_dir == "right":
-            st.error(f"样本均值 \\(\\bar{{X}} = {mean2:.2f}\\) 落在 critical region（μ_crit = {mu_crit_chosen:.4f}），因此拒绝 H₀，结论：μ > μ₀。")
+            st.error(f"样本均值X̄= {mean2:.2f}\\) 落在 critical region（critical value = {mu_crit_chosen:.4f}），拒绝 H₀，μ > μ₀。")
         else:
-            st.error(f"样本均值 \\(\\bar{{X}} = {mean2:.2f}\\) 落在 critical region（μ_crit = {mu_crit_chosen:.4f}），因此拒绝 H₀，结论：μ < μ₀。")
+            st.error(f"样本均值X̄ = {mean2:.2f}\\) 落在 critical region（critical value = {mu_crit_chosen:.4f}），拒绝 H₀，μ < μ₀。")
     else:
         # accept H0 — exact sentence per request
         st.success("接受H₀，没有足够证据断定 μ 与 μ₀ 不同。")
